@@ -2,7 +2,7 @@
   const cookName = sessionStorage.getItem('cookName') || 'Cook';
   document.getElementById('cookName').textContent = cookName;
 
-  function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
+  function logout() { sessionStorage.clear(); window.location.href = '/views/login.html'; }
 
   const reviews = [
     { order:'#ORD-031', rating:5, text:'อาหารอร่อยมากๆ ครับ เสิร์ฟเร็ว ร้อน สด', table:'T-04', time:'11:30' },
