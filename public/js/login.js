@@ -1,5 +1,5 @@
 
-  const COOKS = { 'COOK-001': 'Somchai', 'COOK-002': 'Nattawan' };
+  const COOKS = { 'COOK-001': 'Khiaongo' };
 
   function doLogin() {
     const id = document.getElementById('cookId').value.trim().toUpperCase();
