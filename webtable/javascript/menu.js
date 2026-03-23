@@ -29,7 +29,7 @@ let currentFilter = 'all';
 function renderMenu(filter = 'all', search = '') {
     const grid = document.getElementById('menu-grid');
     currentFilter = filter;
-    
+    // ค้นหาเมนู
     const filtered = inventory.filter(item => {
         const matchesCat = filter === 'all' || item.category === filter;
         const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
@@ -71,7 +71,7 @@ function addToCart(id) {
         renderMenu(currentFilter, document.getElementById('searchInput').value);
     }
 }
-
+// แยกประเภท
 function filterCategory(cat) {
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.classList.toggle('btn-warning', btn.dataset.cat === cat);
