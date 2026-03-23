@@ -5,14 +5,14 @@
   function logout() { sessionStorage.clear(); window.location.href = '/views/login.html'; }
 
   const reviews = [
-    { order:'#ORD-031', rating:5, text:'อาหารอร่อยมากๆ ครับ เสิร์ฟเร็ว ร้อน สด', table:'T-04', time:'11:30' },
-    { order:'#ORD-028', rating:4, text:'รสชาติดี แต่รอนานนิดนึง', table:'T-06', time:'11:10' },
-    { order:'#ORD-025', rating:5, text:'ข้าวผัดกระเพราสุดยอด! จะกลับมาอีกแน่นอน', table:'T-02', time:'10:55' },
-    { order:'#ORD-022', rating:3, text:'ปกติ ไม่มีอะไรพิเศษ', table:'T-08', time:'10:30' },
-    { order:'#ORD-019', rating:5, text:'อาหารสดใหม่ ปรุงร้อนๆ ถูกปากมาก', table:'T-01', time:'10:10' },
-    { order:'#ORD-016', rating:4, text:'Green curry was excellent, nicely balanced', table:'T-11', time:'09:50' },
-    { order:'#ORD-013', rating:2, text:'รสชาติไม่ค่อยจัด อยากให้เผ็ดกว่านี้', table:'T-03', time:'09:20' },
-    { order:'#ORD-010', rating:5, text:'ทุกอย่างสมบูรณ์แบบ ประทับใจมาก', table:'T-07', time:'09:00' },
+    { order:'#ORD-030', rating:5, text:'อาหารอร่อยมากๆ ครับ เสิร์ฟเร็ว ร้อน สด', table:'T-02', time:'10:20' },
+    { order:'#ORD-029', rating:4, text:'รสชาติดี แต่รอนานนิดนึง', table:'T-06', time:'11:10' },
+    { order:'#ORD-028', rating:5, text:'ข้าวผัดกระเพราสุดยอด! จะกลับมาอีกแน่นอน', table:'T-02', time:'10:55' },
+    { order:'#ORD-027', rating:3, text:'ปกติ ไม่มีอะไรพิเศษ', table:'T-08', time:'10:30' },
+    { order:'#ORD-026', rating:5, text:'อาหารสดใหม่ ปรุงร้อนๆ ถูกปากมาก', table:'T-01', time:'10:10' },
+    { order:'#ORD-025', rating:4, text:'Green curry was excellent, nicely balanced', table:'T-11', time:'09:50' },
+    { order:'#ORD-024', rating:2, text:'รสชาติไม่ค่อยจัด อยากให้เผ็ดกว่านี้', table:'T-03', time:'09:20' },
+    { order:'#ORD-023', rating:5, text:'ทุกอย่างสมบูรณ์แบบ ประทับใจมาก', table:'T-07', time:'09:00' },
   ];
 
   const total = reviews.length;
