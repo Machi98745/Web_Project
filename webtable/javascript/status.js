@@ -11,7 +11,7 @@ function initStatus() {
         document.getElementById('step-2')
     ];
 
-    // Check if there is actually an order to track
+    // ตรวจออเดอร์ว่าได้สั่งไม่ได้สั่ง
     if (!orderPlaced || cart.length === 0) {
         statusHeading.innerText = "No Active Order";
         statusText.innerText = "You haven't placed an order yet.";
