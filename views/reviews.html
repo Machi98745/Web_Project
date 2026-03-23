@@ -10,19 +10,17 @@
 <body class="min-h-screen flex flex-col bg-base-200">
 
   <!-- NAVBAR -->
-  <div class="navbar bg-base-100 border-b border-base-300 px-4">
-    <div class="navbar-start">
-      <span class="font-bold text-warning tracking-widest text-sm">KITCHEN STATION</span>
+  <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+    <span class="text-yellow-500 font-bold tracking-widest text-sm">KITCHEN STATION</span>
+    <div class="flex gap-1 border border-gray-300 rounded-lg overflow-hidden">
+      <button onclick="location.href='/views/orders.html'"
+        class="px-5 py-1.5 text-sm font-semibold bg-white shadow-sm">Orders</button>
+      <button onclick="location.href='/views/reviews.html'"
+        class="px-5 py-1.5 text-sm text-gray-500 border-l border-gray-300 hover:bg-gray-100 transition-colors">Reviews</button>
     </div>
-    <div class="navbar-center">
-      <div class="tabs tabs-box">
-        <!-- <a href="orders.html" class="tab">Orders</a>  --> 
-        <a href="/views/reviews.html" class="tab tab-active">Reviews</a>
-      </div>
-    </div>
-    <div class="navbar-end gap-3">
-      <span class="text-sm text-base-content/50">Cook: <span class="text-warning font-medium" id="cookName">—</span></span>
-      <button class="btn btn-sm btn-outline btn-error" onclick="logout()">Logout</button>
+    <div class="flex items-center gap-3">
+      <span class="text-sm text-gray-400">Cook: <span class="text-yellow-500 font-medium" id="cookName">Chef</span></span>
+      <button onclick="logout()" class="border border-red-400 text-red-400 hover:bg-red-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">Logout</button>
     </div>
   </div>
 

@@ -8,7 +8,7 @@
     if (COOKS[id] && pw.length >= 4) {
       sessionStorage.setItem('cookId', id);
       sessionStorage.setItem('cookName', COOKS[id]);
-      window.location.href = '/views/reviews.html';
+      window.location.href = '/views/orders.html';
     } else {
       err.classList.remove('hidden');
     }
