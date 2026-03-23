@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Ordering - Kitchen Station</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+</head>
+<body>
+   <div class="p-4 bg-base-100 min-h-screen flex flex-col" data-theme="night">
+    <div class="flex items-center gap-4 mb-6">
+        <button onclick="location.href='menu.html'" class="btn btn-ghost btn-circle">←</button>
+        <h2 class="text-2xl font-bold">Your Tray</h2>
+    </div>
+
+    <div id="cart-list" class="flex-1 space-y-3"></div>
+
+    <div class="mt-auto border-t border-base-300 pt-4">
+        <button id="order-btn" class="btn btn-warning btn-block shadow-lg font-bold">Confirm & Place Order</button>
+    </div>
+</div>
+<script src="ordercart.js"></script>
+</body>
+
+</html>
