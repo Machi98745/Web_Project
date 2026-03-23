@@ -21,7 +21,7 @@ const initialMenuItems = [
     { id: 20, name: 'Soda', price: 25, category: 'Drink', stock: 40 }
 ];
 
-// Initialize Inventory and Cart
+
 let inventory = JSON.parse(localStorage.getItem('kitchen_inventory')) || initialMenuItems;
 let cart = JSON.parse(localStorage.getItem('kitchen_cart')) || [];
 let currentFilter = 'all';
