@@ -4,7 +4,7 @@ let inventory = JSON.parse(localStorage.getItem('kitchen_inventory')) || [];
 function renderCart() {
     const list = document.getElementById('cart-list');
     const orderBtn = document.getElementById('order-btn');
-
+// ถ้าไม่มีของไม่ให้สั่ง
     if (cart.length === 0) {
         list.innerHTML = `<div class="text-center py-20 opacity-30 italic">Tray is empty</div>`;
         orderBtn.disabled = true;
@@ -25,7 +25,6 @@ function renderCart() {
 
 function removeItem(index) {
     const item = cart[index];
-    // Return stock
     const invIdx = inventory.findIndex(i => i.id === item.id);
     if (invIdx !== -1) inventory[invIdx].stock++;
     
