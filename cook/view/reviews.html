@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="night">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body class="min-h-screen flex flex-col bg-base-200">
+
+    <!-- NAVBAR -->
+    <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+        <span class="text-yellow-500 font-bold tracking-widest text-sm">KITCHEN STATION</span>
+        <div class="flex gap-1 border border-gray-300 rounded-lg overflow-hidden">
+            <button onclick="location.href='/cook/view/orders.html'"
+                class="px-5 py-1.5 text-sm font-semibold bg-white shadow-sm">Orders</button>
+            <button onclick="location.href='/cook/view/reviews.html'"
+                class="px-5 py-1.5 text-sm text-gray-500 border-l border-gray-300 hover:bg-gray-100 transition-colors">Reviews</button>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-400">Cook: <span class="text-yellow-500 font-medium"
+                    id="cookName">Chef</span></span>
+            <button onclick="logout()"
+                class="border border-red-400 text-red-400 hover:bg-red-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">Logout</button>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <main class="flex-1 p-6">
+        <h1 class="text-2xl font-bold mb-6">Reviews & Ratings</h1>
+
+        <!-- STAT CARDS -->
+        <div class="grid grid-cols-3 gap-4 mb-6" id="stats"></div>
+
+        <!-- RATING BREAKDOWN -->
+        <div class="card bg-base-100 mb-6">
+            <div class="card-body">
+                <h2 class="card-title text-sm tracking-widest uppercase text-base-content/50 mb-2">Rating Breakdown</h2>
+                <div id="breakdown"></div>
+            </div>
+        </div>
+
+        <!-- REVIEW CARDS -->
+        <p class="text-xs tracking-widest uppercase text-base-content/40 mb-3">All Reviews</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="review-grid"></div>
+    </main>
+
+    <script src="/cook/public/js/reviews.js"></script>
+</body>
+
+</html>
