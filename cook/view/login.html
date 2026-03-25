@@ -4,45 +4,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Login</title>
 </head>
 
 <body class="min-h-screen flex items-center justify-center bg-base-200">
-
-    <div class="card w-96 bg-base-100 shadow-2xl">
+ 
+    <!-- LOGIN CARD -->
+    <div id="loginCard" class="card w-96 bg-base-100 shadow-2xl">
         <div class="card-body gap-4">
-
+ 
             <div class="flex items-center gap-2 mb-1">
                 <span class="badge badge-warning">KITCHEN STATION</span>
                 <span class="text-base-content/40 text-xs">Cook Portal</span>
             </div>
-
+ 
             <h2 class="card-title text-2xl">Login</h2>
-
+ 
             <fieldset class="fieldset">
                 <p class="fieldset-legend">Cook ID</p>
                 <input id="cookId" type="text" class="input w-full" placeholder="e.g. COOK-001" />
             </fieldset>
-
+ 
             <fieldset class="fieldset">
                 <p class="fieldset-legend">Password</p>
                 <input id="cookPass" type="password" class="input w-full" placeholder="Password" />
             </fieldset>
-
-            <div id="err" class="alert alert-error hidden text-sm">
+ 
+            <div id="loginErr" class="alert alert-error hidden text-sm">
                 <span>Invalid Cook ID or Password</span>
             </div>
-
+ 
             <div class="card-actions mt-2">
                 <button class="btn btn-warning w-full" onclick="doLogin()">Enter Kitchen</button>
             </div>
-
+ 
             <p class="text-center text-xs text-base-content/30">Example: COOK-001 / any 4+ char password</p>
-
+ 
+            <div class="text-center">
+                <p class="text-base-content/50 text-sm">New cook?
+                    <button onclick="switchCard('register')" class="text-warning font-medium hover:opacity-80 transition-opacity">Create account</button>
+                </p>
+            </div>
         </div>
     </div>
+ 
+    <!-- REGISTER CARD -->
+    <div id="registerCard" class="card w-96 bg-base-100 shadow-2xl hidden">
+        <div class="card-body gap-4">
+ 
+            <div class="flex items-center gap-2 mb-1">
+                <span class="badge badge-warning">KITCHEN STATION</span>
+                <span class="text-base-content/40 text-xs">Cook Portal</span>
+            </div>
+ 
+            <button onclick="switchCard('login')" class="text-base-content/40 text-xs hover:text-base-content/70 self-start transition-colors">← Back to login</button>
+ 
+            <h2 class="card-title text-2xl">Create account</h2>
+ 
+            <fieldset class="fieldset">
+                <p class="fieldset-legend">Cook ID</p>
+                <input id="regId" type="text" class="input w-full" placeholder="e.g. COOK-004" />
+            </fieldset>
+ 
+            <fieldset class="fieldset">
+                <p class="fieldset-legend">Display Name</p>
+                <input id="regName" type="text" class="input w-full" placeholder="Your name" />
+            </fieldset>
+ 
+            <fieldset class="fieldset">
+                <p class="fieldset-legend">Password</p>
+                <input id="regPass" type="password" class="input w-full" placeholder="Min 4 characters" />
+            </fieldset>
+ 
+            <fieldset class="fieldset">
+                <p class="fieldset-legend">Confirm Password</p>
+                <input id="regPass2" type="password" class="input w-full" placeholder="Repeat password" />
+            </fieldset>
+ 
+            <div id="regErr" class="alert alert-error hidden text-sm">
+                <span id="regErrMsg">Error</span>
+            </div>
+            <div id="regOk" class="alert alert-success hidden text-sm">
+                <span>✓ Account created! You can now login.</span>
+            </div>
+ 
+            <div class="card-actions mt-2">
+                <button class="btn btn-warning w-full" onclick="doRegister()">Create Account</button>
+            </div>
+        </div>
+    </div>
+    
 
     <script src="/cook/public/js/login.js"></script>
 </body>

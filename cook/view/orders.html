@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cook App</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Order</title>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col">
@@ -18,9 +18,11 @@
             <span class="text-yellow-500 font-bold tracking-widest text-sm">KITCHEN STATION</span>
             <div class="flex gap-1 border border-gray-300 rounded-lg overflow-hidden">
                 <button onclick="location.href='/cook/view/orders.html'"
-                    class="px-5 py-1.5 text-sm text-gray-500 hover:bg-gray-100 transition-colors">Orders</button>
-                <button onclick="location.href='/cook/view/reviews.html'"
-                    class="px-5 py-1.5 text-sm font-semibold bg-white border-l border-gray-300 shadow-sm">Reviews</button>
+                class="px-5 py-2 font-semibold bg-gray-50 text-gray-800 border-r border-gray-200">Orders</button>
+            <button onclick="location.href='/cook/view/reviews.html'"
+                class="px-5 py-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors">Reviews</button>
+            <button onclick="location.href='/cook/view/dashboard.html'"
+                class="px-5 py-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors border-l border-gray-200">Dashboard</button>
             </div>
             <div class="flex items-center gap-3">
                 <span class="text-sm text-gray-400">Cook: <span class="text-yellow-500 font-medium"
