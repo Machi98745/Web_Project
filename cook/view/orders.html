@@ -10,32 +10,29 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col">
-
+ 
     <div class="flex flex-col min-h-screen">
-
+ 
         <!-- NAVBAR -->
         <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
             <span class="text-yellow-500 font-bold tracking-widest text-sm">KITCHEN STATION</span>
             <div class="flex gap-1 border border-gray-300 rounded-lg overflow-hidden">
                 <button onclick="location.href='/cook/view/orders.html'"
-                class="px-5 py-2 font-semibold bg-gray-50 text-gray-800 border-r border-gray-200">Orders</button>
-            <button onclick="location.href='/cook/view/reviews.html'"
-                class="px-5 py-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors">Reviews</button>
-            <button onclick="location.href='/cook/view/dashboard.html'"
-                class="px-5 py-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors border-l border-gray-200">Dashboard</button>
+                    class="px-5 py-2 font-semibold bg-gray-50 text-gray-800 border-r border-gray-200">Orders</button>
+                <button onclick="location.href='/cook/view/reviews.html'"
+                    class="px-5 py-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors">Reviews</button>
+                <button onclick="location.href='/cook/view/dashboard.html'"
+                    class="px-5 py-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors border-l border-gray-200">Dashboard</button>
             </div>
             <div class="flex items-center gap-3">
-                <span class="text-sm text-gray-400">Cook: <span class="text-yellow-500 font-medium"
-                        id="cookName">Cook</span></span>
-                <button onclick="logout()"
-                    class="border border-red-400 text-red-400 hover:bg-red-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">Logout</button>
+                <span class="text-sm text-gray-400">Cook: <span class="text-yellow-500 font-medium" id="cookName">Cook</span></span>
+                <button onclick="logout()" class="border border-red-400 text-red-400 hover:bg-red-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">Logout</button>
             </div>
         </div>
-
-
-        <!-- Sub header / Tabs -->
+ 
+        <!-- Tabs -->
         <div class="px-6 py-4 border-b bg-white">
-            <div class="navbar-center flex gap-2 mt-3">
+            <div class="flex gap-2 mt-3">
                 <button onclick="setTab('pending')" id="tab-pending"
                     class="tab px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-600 transition-all">Pending</button>
                 <button onclick="setTab('cooking')" id="tab-cooking"
@@ -44,146 +41,10 @@
                     class="tab px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-600 transition-all">Serving</button>
             </div>
         </div>
-
+ 
         <!-- Order List -->
-        <div id="orderList" class="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-gray-100">
-
-            <!-- PENDING -->
-            <div class="card pending bg-gray-50 p-3 rounded-xl shadow" data-order-id="ORD-036">
-                <div class="flex justify-between">
-                    <h2 class="font-semibold">John <span class="text-xs text-gray-400 font-normal">#ORD-036</span></h2>
-                    <span class="text-sm text-gray-400">10:42</span>
-                </div>
-                <p class="text-sm text-gray-500">Table 5</p>
-                <div class="mt-2 text-sm space-y-0.5">
-                    <p>🍜 Pad Thai</p>
-                    <p>🍔 Cheeseburger</p>
-                    <p>🥗 Greek Salad</p>
-                    <p>🍹 Iced Tea</p>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                    <span class="text-gray-500 text-sm">⏱ 4 mins</span>
-                    <button onclick="startCooking(this)"
-                        class="bg-green-700 text-white px-4 py-1.5 rounded-full text-sm font-medium">Start
-                        Cooking</button>
-                </div>
-            </div>
-
-            <div class="card pending bg-gray-50 p-3 rounded-xl shadow" data-order-id="ORD-035">
-                <div class="flex justify-between">
-                    <h2 class="font-semibold">Sarah <span class="text-xs text-gray-400 font-normal">#ORD-035</span></h2>
-                    <span class="text-sm text-gray-400">10:39</span>
-                </div>
-                <p class="text-sm text-gray-500">Table 3</p>
-                <div class="mt-2 text-sm space-y-0.5">
-                    <p>🥗 Caesar Salad</p>
-                    <p>🍕 Margherita Pizza</p>
-                    <p>🍝 Spaghetti Carbonara</p>
-                    <p>🥤 Lemonade</p>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                    <span class="text-gray-500 text-sm">⏱ 8 mins</span>
-                    <button onclick="startCooking(this)"
-                        class="bg-green-700 text-white px-4 py-1.5 rounded-full text-sm font-medium">Start
-                        Cooking</button>
-                </div>
-            </div>
-
-            <div class="card pending bg-gray-50 p-3 rounded-xl shadow" data-order-id="ORD-034">
-                <div class="flex justify-between">
-                    <h2 class="font-semibold">Alex <span class="text-xs text-gray-400 font-normal">#ORD-034</span></h2>
-                    <span class="text-sm text-gray-400">10:50</span>
-                </div>
-                <p class="text-sm text-gray-500">Table 1</p>
-                <div class="mt-2 text-sm space-y-0.5">
-                    <p>🍣 Sushi Platter</p>
-                    <p>🍛 Chicken Curry</p>
-                    <p>🥖 Garlic Bread</p>
-                    <p>🍹 Thai Iced Tea</p>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                    <span class="text-gray-500 text-sm">⏱ 6 mins</span>
-                    <button onclick="startCooking(this)"
-                        class="bg-green-700 text-white px-4 py-1.5 rounded-full text-sm font-medium">Start
-                        Cooking</button>
-                </div>
-            </div>
-
-            <div class="card pending bg-gray-50 p-3 rounded-xl shadow" data-order-id="ORD-033">
-                <div class="flex justify-between">
-                    <h2 class="font-semibold">Lily <span class="text-xs text-gray-400 font-normal">#ORD-033</span></h2>
-                    <span class="text-sm text-gray-400">10:55</span>
-                </div>
-                <p class="text-sm text-gray-500">Table 6</p>
-                <div class="mt-2 text-sm space-y-0.5">
-                    <p>🍲 Tom Yum Goong</p>
-                    <p>🍚 Steamed Rice</p>
-                    <p>🥤 Green Tea</p>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                    <span class="text-gray-500 text-sm">⏱ 7 mins</span>
-                    <button onclick="startCooking(this)"
-                        class="bg-green-700 text-white px-4 py-1.5 rounded-full text-sm font-medium">Start
-                        Cooking</button>
-                </div>
-            </div>
-
-            <div class="card pending bg-gray-50 p-3 rounded-xl shadow" data-order-id="ORD-032">
-                <div class="flex justify-between">
-                    <h2 class="font-semibold">David <span class="text-xs text-gray-400 font-normal">#ORD-032</span></h2>
-                    <span class="text-sm text-gray-400">11:00</span>
-                </div>
-                <p class="text-sm text-gray-500">Table 8</p>
-                <div class="mt-2 text-sm space-y-0.5">
-                    <p>🍛 Massaman Curry</p>
-                    <p>🥗 Papaya Salad</p>
-                    <p>🥤 Soda</p>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                    <span class="text-gray-500 text-sm">⏱ 9 mins</span>
-                    <button onclick="startCooking(this)"
-                        class="bg-green-700 text-white px-4 py-1.5 rounded-full text-sm font-medium">Start
-                        Cooking</button>
-                </div>
-            </div>
-
-            <!-- COOKING -->
-            <div class="card cooking bg-gray-50 p-3 rounded-xl shadow hidden" data-order-id="ORD-031">
-                <div class="flex justify-between">
-                    <h2 class="font-semibold">Brian <span class="text-xs text-gray-400 font-normal">#ORD-031</span></h2>
-                    <span class="text-sm text-gray-400">10:35</span>
-                </div>
-                <p class="text-sm text-gray-500">Table 7</p>
-                <div class="mt-2 text-sm space-y-0.5">
-                    <p>🍔 Cheeseburger</p>
-                    <p>🍚 Fried Rice</p>
-                    <p>🥤 Lemonade</p>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                    <span class="text-gray-500 text-sm">⏱ 12 mins</span>
-                    <button onclick="startCooking(this)"
-                        class="bg-yellow-400 text-white px-4 py-1.5 rounded-full text-sm font-medium">Cooking...</button>
-                </div>
-            </div>
-
-            <!-- SERVING -->
-            <div class="card serving bg-gray-50 p-3 rounded-xl shadow hidden" data-order-id="ORD-030">
-                <div class="flex justify-between">
-                    <h2 class="font-semibold">Emma <span class="text-xs text-gray-400 font-normal">#ORD-030</span></h2>
-                    <span class="text-sm text-gray-400">10:20</span>
-                </div>
-                <p class="text-sm text-gray-500">Table 2</p>
-                <div class="mt-2 text-sm space-y-0.5">
-                    <p>🥗 Caesar Salad</p>
-                    <p>🍕 Pepperoni Pizza</p>
-                </div>
-                <div class="flex justify-between items-center mt-3">
-                    <span class="text-gray-500 text-sm">⏱ 15 mins</span>
-                    <span class="text-green-700 font-semibold text-sm">✔ Done</span>
-                </div>
-            </div>
-
-        </div>
+        <div id="orderList" class="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-gray-100"></div>
+ 
     </div>
 
     <script src="/cook/public/js/orders.js"></script>
