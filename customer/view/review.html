@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+</head>
+
+<body>
+    <div class="p-8 text-center bg-base-200 min-h-screen" data-theme="night">
+        <div class="card bg-base-100 p-6 shadow-2xl border border-base-300">
+            <h2 class="text-2xl font-bold mb-2">How was the food?</h2>
+            <p class="text-sm opacity-50 mb-8 text-base-content/60">Table #05 • Order #ORD-099</p>
+
+            <div class="flex justify-center gap-3 mb-8">
+                <span class="star text-5xl cursor-pointer opacity-20 transition-all" onclick="setStar(1)">★</span>
+                <span class="star text-5xl cursor-pointer opacity-20 transition-all" onclick="setStar(2)">★</span>
+                <span class="star text-5xl cursor-pointer opacity-20 transition-all" onclick="setStar(3)">★</span>
+                <span class="star text-5xl cursor-pointer opacity-20 transition-all" onclick="setStar(4)">★</span>
+                <span class="star text-5xl cursor-pointer opacity-20 transition-all" onclick="setStar(5)">★</span>
+            </div>
+
+            <div class="form-control mb-6">
+                <label class="label"><span class="label-text opacity-50 uppercase text-[10px] font-bold">Write a
+                        comment</span></label>
+                <textarea id="comment"
+                    class="textarea textarea-bordered textarea-warning bg-base-200 h-24 placeholder:opacity-30"
+                    placeholder="Tell the chef what you liked..."></textarea>
+            </div>
+
+            <button onclick="submitReview()" class="btn btn-warning btn-block font-bold shadow-lg">Submit
+                Feedback</button>
+        </div>
+    </div>
+
+    <style>
+        .star.active {
+            color: #fbbd23;
+            opacity: 1;
+            text-shadow: 0 0 15px rgba(251, 189, 35, 0.6);
+            transform: scale(1.1);
+        }
+    </style>
+    <script src="/customer/public/js/review.js"></script>
+</body>
+
+</html>
