@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Status</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>html, body { background-color: #0f1729 !important; }</style>
+</head>
+<body class="bg-base-200 min-h-screen flex items-center justify-center p-4">
+    <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
+        <div class="card-body text-center">
+            <h2 class="card-title text-2xl mb-4 self-center">Kitchen Progress</h2>
+            <div id="dish-tracker-list" class="w-full space-y-3 mb-8 text-left">
+                </div>
+            <button id="bill-btn" class="btn btn-block btn-neutral" disabled>Preparing Meals...</button>
+            <button onclick="location.href='menu.html'" class="btn btn-ghost btn-sm mt-4 opacity-50">Back to Menu</button>
+        </div>
+    </div>
+    <script src="/webtable/javascript/status.js"></script>
+</body>
+</html>
