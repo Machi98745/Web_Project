@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>html, body { background-color: #0f1729 !important; }</style>
+</head>
+<body class="bg-base-200 flex items-center justify-center min-h-screen">
+    <div class="card bg-base-100 w-full max-w-sm p-6 shadow-2xl border border-base-300">
+        <h2 class="text-2xl font-bold text-center mb-6">How was it?</h2>
+        <div class="flex justify-center gap-2 mb-8 text-5xl">
+            <span class="star cursor-pointer opacity-20" onclick="setStar(1)">★</span>
+            <span class="star cursor-pointer opacity-20" onclick="setStar(2)">★</span>
+            <span class="star cursor-pointer opacity-20" onclick="setStar(3)">★</span>
+            <span class="star cursor-pointer opacity-20" onclick="setStar(4)">★</span>
+            <span class="star cursor-pointer opacity-20" onclick="setStar(5)">★</span>
+        </div>
+        <textarea id="comment" class="textarea textarea-bordered h-24 mb-6" placeholder="Any comments?"></textarea>
+        <button onclick="submitReview()" class="btn btn-warning btn-block font-bold">Submit & Log Out</button>
+    </div>
+    <script src="/webtable/javascript/review.js"></script>
+</body>
+</html>
