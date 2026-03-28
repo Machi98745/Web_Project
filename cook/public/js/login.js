@@ -1,87 +1,130 @@
-// ─── Cooks store ─────────────────────────────────────────────────────────────
-function getCooks() {
-    const stored = localStorage.getItem('cooks');
-    if (stored) return JSON.parse(stored);
-
-    // default accounts ถ้ายังไม่มีใน localStorage
-    const defaults = {
-        'COOK-001': { name: 'Khiaongo', pass: 'pass1' },
-        'COOK-002': { name: 'Somchai',  pass: 'pass2' },
-        'COOK-003': { name: 'Malee',    pass: 'pass3' },
-    };
-    localStorage.setItem('cooks', JSON.stringify(defaults));
-    return defaults;
+// Redirect already-logged-in users straight to orders
+if (sessionStorage.getItem('cookId')) {
+    window.location.href = '/cook/view/orders.html';
 }
 
-
-// ─── Switch between login / register card ─────────────────────────────────────
+// Switch between login / register card 
 function switchCard(view) {
     document.getElementById('loginCard').classList.toggle('hidden', view !== 'login');
     document.getElementById('registerCard').classList.toggle('hidden', view !== 'register');
-
-    // clear error banners when switching
+ 
     document.getElementById('loginErr').classList.add('hidden');
     document.getElementById('regErr').classList.add('hidden');
     document.getElementById('regOk').classList.add('hidden');
 }
 
 
-// ─── Login ────────────────────────────────────────────────────────────────────
-function doLogin() {
-    const id = document.getElementById('cookId').value.trim().toUpperCase();
-    const pw = document.getElementById('cookPass').value;
-    const err = document.getElementById('loginErr');
-
-    const cooks = getCooks();
-
-    if (cooks[id] && cooks[id].pass === pw) {
-        sessionStorage.setItem('cookId', id);
-        sessionStorage.setItem('cookName', cooks[id].name);
-        window.location.href = '/cook/view/orders.html';
-    } else {
-        err.classList.remove('hidden');
-        setTimeout(() => err.classList.add('hidden'), 3000);
+// Login
+async function doLogin() {
+    const cookId = document.getElementById('cookId').value.trim().toUpperCase();
+    const password = document.getElementById('cookPass').value;
+    const errBanner = document.getElementById('loginErr');
+ 
+    errBanner.classList.add('hidden');
+ 
+    if (!cookId || !password) {
+        errBanner.classList.remove('hidden');
+        return;
+    }
+ 
+    try {
+        const res = await fetch('/cook/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cookId, password })
+        });
+ 
+        if (res.ok) {
+            const data = await res.json();
+            sessionStorage.setItem('cookId', data.cookId);
+            sessionStorage.setItem('cookName', data.name);
+            window.location.href = '/cook/view/orders.html';
+        } else {
+            errBanner.classList.remove('hidden');
+        }
+    } catch (e) {
+        errBanner.classList.remove('hidden');
     }
 }
 
 
-// ─── Register ─────────────────────────────────────────────────────────────────
-function doRegister() {
-    const id    = document.getElementById('regId').value.trim().toUpperCase();
-    const name  = document.getElementById('regName').value.trim();
-    const pass  = document.getElementById('regPass').value;
+// Register
+async function doLogin() {
+    const cookId = document.getElementById('cookId').value.trim().toUpperCase();
+    const password = document.getElementById('cookPass').value;
+    const errBanner = document.getElementById('loginErr');
+ 
+    errBanner.classList.add('hidden');
+ 
+    if (!cookId || !password) {
+        errBanner.classList.remove('hidden');
+        return;
+    }
+ 
+    try {
+        const res = await fetch('/cook/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cookId, password })
+        });
+ 
+        if (res.ok) {
+            const data = await res.json();
+            sessionStorage.setItem('cookId', data.cookId);
+            sessionStorage.setItem('cookName', data.name);
+            window.location.href = '/cook/view/orders.html';
+        } else {
+            errBanner.classList.remove('hidden');
+        }
+    } catch (e) {
+        errBanner.classList.remove('hidden');
+    }
+}
+ 
+async function doRegister() {
+    const cookId = document.getElementById('regId').value.trim().toUpperCase();
+    const name = document.getElementById('regName').value.trim();
+    const pass = document.getElementById('regPass').value;
     const pass2 = document.getElementById('regPass2').value;
-
-    const err    = document.getElementById('regErr');
+ 
+    const err = document.getElementById('regErr');
     const errMsg = document.getElementById('regErrMsg');
-    const ok     = document.getElementById('regOk');
-
+    const ok = document.getElementById('regOk');
+ 
     err.classList.add('hidden');
     ok.classList.add('hidden');
-
-    // validation
-    if (!id.match(/^COOK-\d{3}$/))  { showRegError(errMsg, err, 'Cook ID must be format COOK-XXX'); return; }
-    if (!name)                        { showRegError(errMsg, err, 'Please enter a display name');     return; }
-    if (pass.length < 4)              { showRegError(errMsg, err, 'Password must be at least 4 characters'); return; }
-    if (pass !== pass2)               { showRegError(errMsg, err, 'Passwords do not match');          return; }
-
-    const cooks = getCooks();
-    if (cooks[id])                    { showRegError(errMsg, err, 'Cook ID already exists');          return; }
-
-    // save
-    cooks[id] = { name, pass };
-    localStorage.setItem('cooks', JSON.stringify(cooks));
-    ok.classList.remove('hidden');
-
-    // redirect back to login after a moment
-    setTimeout(() => {
-        ['regId', 'regName', 'regPass', 'regPass2'].forEach(id => {
-            document.getElementById(id).value = '';
+ 
+    if (!cookId.match(/^COOK-\d{3}$/)) { showRegError(errMsg, err, 'Cook ID must be format COOK-XXX'); return; }
+    if (!name) { showRegError(errMsg, err, 'Please enter a display name'); return; }
+    if (pass.length < 4) { showRegError(errMsg, err, 'Password must be at least 4 characters'); return; }
+    if (pass !== pass2) { showRegError(errMsg, err, 'Passwords do not match'); return; }
+ 
+    try {
+        const res = await fetch('/cook/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cookId, name, password: pass })
         });
-        ok.classList.add('hidden');
-        switchCard('login');
-        document.getElementById('cookId').value = id;
-    }, 1500);
+ 
+        if (res.status === 201) {
+            ok.classList.remove('hidden');
+            setTimeout(() => {
+                ['regId', 'regName', 'regPass', 'regPass2'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+                ok.classList.add('hidden');
+                switchCard('login');
+                document.getElementById('cookId').value = cookId;
+            }, 1500);
+        } else if (res.status === 409) {
+            showRegError(errMsg, err, 'Cook ID already exists');
+        } else {
+            const data = await res.json().catch(() => ({}));
+            showRegError(errMsg, err, data.message || 'Registration failed. Please try again.');
+        }
+    } catch (e) {
+        showRegError(errMsg, err, 'Cannot connect to server. Please try again.');
+    }
 }
 
 function showRegError(msgEl, bannerEl, message) {
@@ -90,7 +133,7 @@ function showRegError(msgEl, bannerEl, message) {
 }
 
 
-// ─── Enter key support ────────────────────────────────────────────────────────
+// Enter key support
 document.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
     const onLogin = !document.getElementById('loginCard').classList.contains('hidden');
