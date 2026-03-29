@@ -1,5 +1,5 @@
 // Auth
-const cookName = sessionStorage.getItem('cookName') || 'Cook';
+const cookName = sessionStorage.getItem('cookId') || 'Cook';
 document.getElementById('cookName').textContent = cookName;
 
 function logout() {

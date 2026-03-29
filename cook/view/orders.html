@@ -10,9 +10,9 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col">
- 
+
     <div class="flex flex-col min-h-screen">
- 
+
         <!-- NAVBAR -->
         <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
             <span class="text-yellow-500 font-bold tracking-widest text-sm">KITCHEN STATION</span>
@@ -25,11 +25,13 @@
                     class="px-5 py-2 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors border-l border-gray-200">Dashboard</button>
             </div>
             <div class="flex items-center gap-3">
-                <span class="text-sm text-gray-400">Cook: <span class="text-yellow-500 font-medium" id="cookName">Cook</span></span>
-                <button onclick="logout()" class="border border-red-400 text-red-400 hover:bg-red-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">Logout</button>
+                <span class="text-sm text-gray-400">Cook: <span class="text-yellow-500 font-medium"
+                        id="cookName">Cook</span></span>
+                <button onclick="logout()"
+                    class="border border-red-400 text-red-400 hover:bg-red-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">Logout</button>
             </div>
         </div>
- 
+
         <!-- Tabs -->
         <div class="px-6 py-4 border-b bg-white">
             <div class="flex gap-2 mt-3">
@@ -41,23 +43,23 @@
                     class="tab px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-600 transition-all">Serving</button>
             </div>
         </div>
- 
+
         <!-- Order List -->
         <div id="orderList" class="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-gray-100"></div>
- 
+
     </div>
- 
- 
+
+
     <!-- CONFIRM MODAL -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-black/40 flex items-end justify-center z-50 pb-6 px-4">
         <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl">
             <p class="text-xs text-gray-400 mb-1" id="modal-order">ORD-000 · Table</p>
             <p class="font-semibold text-gray-800 text-base mb-4" id="modal-item">Item name</p>
- 
+
             <p class="text-sm text-gray-500 mb-4">
                 Mark as <span class="font-semibold text-gray-800" id="modal-next">Cooking</span>?
             </p>
- 
+
             <div class="flex gap-3">
                 <button onclick="closeModal()"
                     class="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">

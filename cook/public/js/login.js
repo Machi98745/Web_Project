@@ -16,7 +16,7 @@ function switchCard(view) {
 
 // Login
 async function doLogin() {
-    const cookId = document.getElementById('cookId').value.trim().toUpperCase();
+    const cookId   = document.getElementById('cookId').value.trim();
     const password = document.getElementById('cookPass').value;
     const errBanner = document.getElementById('loginErr');
  
@@ -31,13 +31,13 @@ async function doLogin() {
         const res = await fetch('/cook/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cookId, password })
+            body: JSON.stringify({ cookId, password })  // ✅ แก้จาก username → cookId
         });
  
         if (res.ok) {
             const data = await res.json();
             sessionStorage.setItem('cookId', data.cookId);
-            sessionStorage.setItem('cookName', data.name);
+            sessionStorage.setItem('cookName', data.name);  // ✅ แก้จาก data.cookName → data.name
             window.location.href = '/cook/view/orders.html';
         } else {
             errBanner.classList.remove('hidden');
@@ -49,61 +49,29 @@ async function doLogin() {
 
 
 // Register
-async function doLogin() {
-    const cookId = document.getElementById('cookId').value.trim().toUpperCase();
-    const password = document.getElementById('cookPass').value;
-    const errBanner = document.getElementById('loginErr');
- 
-    errBanner.classList.add('hidden');
- 
-    if (!cookId || !password) {
-        errBanner.classList.remove('hidden');
-        return;
-    }
- 
-    try {
-        const res = await fetch('/cook/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cookId, password })
-        });
- 
-        if (res.ok) {
-            const data = await res.json();
-            sessionStorage.setItem('cookId', data.cookId);
-            sessionStorage.setItem('cookName', data.name);
-            window.location.href = '/cook/view/orders.html';
-        } else {
-            errBanner.classList.remove('hidden');
-        }
-    } catch (e) {
-        errBanner.classList.remove('hidden');
-    }
-}
- 
 async function doRegister() {
-    const cookId = document.getElementById('regId').value.trim().toUpperCase();
-    const name = document.getElementById('regName').value.trim();
-    const pass = document.getElementById('regPass').value;
-    const pass2 = document.getElementById('regPass2').value;
+    const cookId = document.getElementById('regId').value.trim();
+    const name   = document.getElementById('regName').value.trim();
+    const pass   = document.getElementById('regPass').value;
+    const pass2  = document.getElementById('regPass2').value;
  
-    const err = document.getElementById('regErr');
+    const err    = document.getElementById('regErr');
     const errMsg = document.getElementById('regErrMsg');
-    const ok = document.getElementById('regOk');
+    const ok     = document.getElementById('regOk');
  
     err.classList.add('hidden');
     ok.classList.add('hidden');
  
-    if (!cookId.match(/^COOK-\d{3}$/)) { showRegError(errMsg, err, 'Cook ID must be format COOK-XXX'); return; }
-    if (!name) { showRegError(errMsg, err, 'Please enter a display name'); return; }
+    if (!cookId)         { showRegError(errMsg, err, 'Please enter a Cook ID'); return; }
+    if (!name)           { showRegError(errMsg, err, 'Please enter a display name'); return; }
     if (pass.length < 4) { showRegError(errMsg, err, 'Password must be at least 4 characters'); return; }
-    if (pass !== pass2) { showRegError(errMsg, err, 'Passwords do not match'); return; }
+    if (pass !== pass2)  { showRegError(errMsg, err, 'Passwords do not match'); return; }
  
     try {
         const res = await fetch('/cook/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cookId, name, password: pass })
+            body: JSON.stringify({ cookId, name, password: pass })  // ✅ แก้จาก username → cookId
         });
  
         if (res.status === 201) {
