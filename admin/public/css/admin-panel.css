@@ -1,18 +1,20 @@
 :root {
-    --bg: black;
-    --surface: #1a1a1a;
-    --surface2: #222;
-    --border: rgba(255, 255, 255, 0.08);
-    --border2: rgba(255, 255, 255, 0.14);
-    --text: #f0ede8;
-    --muted: #888;
-    --accent: #e8c07a;
-    --accent2: #c9a85c;
-    --danger: #e07060;
-    --success: #6bbf8e;
-    --info: #6a9fd8;
+    --bg: #f5f6f8;             
+    --surface: #ffffff;        
+    --surface2: #f0f1f3;     
+    --border: rgba(0, 0, 0, 0.08);
+    --border2: rgba(0, 0, 0, 0.15);
+    --text: #1f2933;           
+    --muted: #6b7280;          
+    --accent: #f4c542;         
+    --accent2: #e0b233;    
+    --danger: #e35d5d;
+    --success: #4caf7a;
+    --info: #4a90e2;
+
     --serif: 'DM Serif Display', serif;
     --sans: 'DM Sans', sans-serif;
+
     --r: 10px;
 }
 
