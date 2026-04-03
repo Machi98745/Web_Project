@@ -1,10 +1,11 @@
 // Auth
-const cookName = sessionStorage.getItem('cookName') || 'Cook';
+const cookName = sessionStorage.getItem('cookId') || 'Cook';
 document.getElementById('cookName').textContent = cookName;
 
 function logout() {
-    sessionStorage.clear();
-    window.location.href = '/cook/view/login.html';
+    if (!sessionStorage.getItem('cookId')) {
+        window.location.href = '/cook/view/login.html';
+    }
 }
 
 
@@ -12,34 +13,17 @@ function logout() {
 const DRINK_KEYWORDS = ['tea', 'coffee', 'lemonade', 'soda', 'juice', 'water', 'smoothie', 'shake', 'cola', 'iced'];
 
 function isDrink(itemName) {
+    if (!itemName) return false;
     const lower = itemName.toLowerCase();
     return DRINK_KEYWORDS.some(kw => lower.includes(kw));
 }
 
 
 // Raw order data
-const rawOrders = [
-    {
-        id: 'ORD-036', table: 'Table 5', time: '10:42',
-        items: ['🍜 Pad Thai', '🍔 Cheeseburger', '🥗 Greek Salad', '🍹 Iced Tea']
-    },
-    {
-        id: 'ORD-035', table: 'Table 3', time: '10:39',
-        items: ['🥗 Caesar Salad', '🍕 Margherita Pizza', '🍝 Spaghetti Carbonara', '🥤 Lemonade']
-    },
-    {
-        id: 'ORD-034', table: 'Table 1', time: '10:50',
-        items: ['🍣 Sushi Platter', '🍛 Chicken Curry', '🥖 Garlic Bread', '🍹 Thai Iced Tea']
-    },
-    {
-        id: 'ORD-033', table: 'Table 6', time: '10:55',
-        items: ['🍲 Tom Yum Goong', '🍚 Steamed Rice', '🥤 Green Tea']
-    },
-    {
-        id: 'ORD-032', table: 'Table 8', time: '11:00',
-        items: ['🍛 Massaman Curry', '🥗 Papaya Salad', '🥤 Soda']
-    },
-];
+async function loadOrders(status) {
+    const res = await fetch(`/cook/orders?status=${status}`);
+    const data = await res.json();
+}
 
 
 // Split items: one card per food, one grouped card for drinks 
@@ -47,29 +31,29 @@ function buildItemCards(orders) {
     const cards = [];
 
     for (const order of orders) {
-        const foodItems  = order.items.filter(item => !isDrink(item));
-        const drinkItems = order.items.filter(item =>  isDrink(item));
+        const foodItems = order.items.filter(item => !isDrink(item));
+        const drinkItems = order.items.filter(item => isDrink(item));
 
         for (const item of foodItems) {
             cards.push({
-                orderId:  order.id,
-                table:    order.table,
-                time:     order.time,
-                type:     'food',
-                label:    item,
-                status:   'pending',
+                orderId: order.id,
+                table: order.table,
+                time: order.time,
+                type: 'food',
+                label: item,
+                status: 'pending',
             });
         }
 
         if (drinkItems.length > 0) {
             cards.push({
-                orderId:  order.id,
-                table:    order.table,
-                time:     order.time,
-                type:     'drink',
-                label:    drinkItems.join(', '),
-                items:    drinkItems,
-                status:   'pending',
+                orderId: order.id,
+                table: order.table,
+                time: order.time,
+                type: 'drink',
+                label: drinkItems.join(', '),
+                items: drinkItems,
+                status: 'pending',
             });
         }
     }
@@ -77,8 +61,31 @@ function buildItemCards(orders) {
     return cards;
 }
 
-const itemCards = buildItemCards(rawOrders);
+let itemCards = [];
 
+async function loadOrders(status = 'pending') {
+    try {
+        const res = await fetch(`/cook/orders?status=${status}`);
+        const data = await res.json();
+
+        // 🔥 แปลงข้อมูลจาก DB → format ที่ UI ใช้
+        itemCards = data.map(item => ({
+            order_item_id: item.order_item_id,
+            orderId: `ORD-${item.order_id}`,
+            table: `Table ${item.table_number}`,
+            time: new Date(item.created_at).toLocaleTimeString(),
+            type: isDrink(item.menu_name) ? 'drink' : 'food',
+            label: item.menu_name || item.name || 'Unknown',
+            items: [item.menu_name],
+            status: item.status
+        }));
+
+        renderCards();
+
+    } catch (err) {
+        console.error(err);
+    }
+}
 
 // Confirm modal
 let pendingAdvanceIndex = null;
@@ -89,26 +96,48 @@ function askAdvance(index) {
     const card = itemCards[index];
     const nextLabel = card.status === 'pending' ? 'Cooking' : 'Served';
 
-    document.getElementById('modal-item').textContent  = card.type === 'drink' ? '🥤 ' + card.label : card.label;
+    document.getElementById('modal-item').textContent = card.type === 'drink' ? '🥤 ' + card.label : card.label;
     document.getElementById('modal-order').textContent = `${card.orderId} · ${card.table}`;
-    document.getElementById('modal-next').textContent  = nextLabel;
+    document.getElementById('modal-next').textContent = nextLabel;
     document.getElementById('confirmModal').classList.remove('hidden');
 }
 
-function confirmAdvance() {
+async function confirmAdvance() {
     if (pendingAdvanceIndex === null) return;
 
     const card = itemCards[pendingAdvanceIndex];
     pendingAdvanceIndex = null;
 
-    if (card.status === 'pending') {
-        card.status = 'cooking';
+    const nextStatus = card.status === 'pending' ? 'cooking' : 'serving';
+
+    try {
+        const cookId = sessionStorage.getItem('cookId');
+
+        if (!cookId) {
+            alert("Please login again");
+            window.location.href = '/cook/view/login.html';
+            return;
+        }
+
+        const res = await fetch(`/cook/order-item/${card.order_item_id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                status: nextStatus,
+                cookId: cookId
+            })
+        });
+
+        if (!res.ok) {
+            alert("Update failed");
+            return;
+        }
+
         closeModal();
-        setTab('cooking');
-    } else if (card.status === 'cooking') {
-        card.status = 'serving';
-        closeModal();
-        setTab('serving');
+        loadOrders(currentTab);
+
+    } catch (err) {
+        console.error(err);
     }
 }
 
@@ -189,7 +218,7 @@ function setTab(tab) {
     active.classList.add('bg-green-700', 'text-white');
     active.classList.remove('bg-gray-200', 'text-gray-600');
 
-    renderCards();
+    loadOrders(tab);
 }
 
 
