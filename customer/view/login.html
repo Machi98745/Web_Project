@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Customer Login</title>
+</head>
+
+<body class="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    
+    <div id="loginCard" class="card w-full max-w-sm bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden">
+        <div class="card-body p-8 items-center text-center gap-4">
+
+            <div class="flex items-center gap-2 mb-1">
+                <span class="bg-amber-400 text-black text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">KITCHEN STATION</span>
+                <span class="text-slate-400 text-xs">Customer Portal</span>
+            </div>
+
+            <h2 class="card-title text-2xl font-black text-slate-800">Welcome</h2>
+
+            <fieldset class="fieldset w-full">
+                <p class="fieldset-legend text-slate-500 font-bold justify-center">Table number</p>
+                <input id="tableNumber" type="number" min="1" 
+                    class="input input-lg w-full text-center bg-slate-50 border-slate-200 focus:border-amber-400 focus:outline-none rounded-2xl text-slate-800 font-bold" 
+                    placeholder="Table number" />
+            </fieldset>
+
+            <div id="loginErr" class="alert bg-red-50 text-red-500 border-red-100 hidden text-sm font-bold">
+                <span>Invalid table number</span>
+            </div>
+
+            <div class="card-actions w-full mt-2">
+                <button class="btn bg-amber-400 hover:bg-amber-500 border-none text-black font-black w-full rounded-2xl shadow-lg shadow-amber-100" 
+                    onclick="doLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/customer/public/js/login.js"></script>
+</body>
+
+</html>

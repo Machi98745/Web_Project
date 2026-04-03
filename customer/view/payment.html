@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="night">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -7,19 +7,43 @@
     <title>Payment</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
 </head>
 
-<body>
-    <div class="p-6">
-        <h2 class="text-xl font-bold border-b pb-2">Final Bill</h2>
-        <div id="bill-summary" class="py-4"></div>
-        <div class="text-2xl font-bold text-warning flex justify-between">
-            <span>Total</span><span id="grand-total">0฿</span>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+    
+    <div class="card w-full max-w-md bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden">
+        <div class="card-body p-8">
+            
+            <div class="flex justify-center mb-6">
+                <span class="bg-slate-100 text-slate-400 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-[0.2em]">Kitchen Receipt</span>
+            </div>
+
+            <h2 class="text-3xl font-black text-slate-800 border-b border-slate-100 pb-6 flex justify-between items-end">
+                Final Bill <span id="table-display" class="text-xs font-bold text-amber-500 uppercase tracking-widest"></span>
+            </h2>
+            
+            <div id="bill-summary" class="py-6 space-y-4 min-h-[100px]">
+                <div class="flex justify-center py-4">
+                    <div class="loading loading-dots loading-md text-amber-400"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-6 border-t border-dashed border-slate-200">
+                <span class="text-sm font-black text-slate-400 uppercase tracking-widest">Grand Total</span>
+                <span id="grand-total" class="text-4xl font-black text-slate-900 tracking-tighter">0฿</span>
+            </div>
+
+            <div class="card-actions mt-10">
+                <button onclick="processPayment()" class="btn btn-lg bg-amber-400 hover:bg-amber-500 border-none text-black font-black text-lg w-full rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95"> 
+                    Confirm Payment 
+                </button>
+                <p class="text-[10px] text-center w-full text-slate-300 font-medium uppercase mt-2 tracking-tighter">
+                    Thank you for dining with us
+                </p>
+            </div>
         </div>
-        <button onclick="location.href='review.html'" class="btn btn-warning btn-block mt-10">Pay Now</button>
     </div>
+
     <script src="/customer/public/js/payment.js"></script>
 </body>
-
 </html>

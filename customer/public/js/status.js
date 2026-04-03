@@ -1,51 +1,68 @@
+async function checkAllOrdersStatus() {
+    const tableNo = sessionStorage.getItem('tableNumber') || '--';
+    const orderIds = JSON.parse(sessionStorage.getItem('allOrderIds')) || [];
+    
+    if (document.getElementById('table-number')) 
+        document.getElementById('table-number').innerText = `#${tableNo}`;
+    
+    if (document.getElementById('order-id')) 
+        document.getElementById('order-id').innerText = orderIds.length > 0 ? orderIds.join(', ') : 'No Active Order';
 
-function initStatus() {
-    const orderPlaced = localStorage.getItem('kitchen_order_placed') === 'true';
-    const cart = JSON.parse(localStorage.getItem('kitchen_cart')) || [];
-
-    const statusHeading = document.getElementById('status-heading');
-    const statusText = document.getElementById('status-text');
-    const billBtn = document.getElementById('bill-btn');
-    const steps = [
-        document.getElementById('step-0'),
-        document.getElementById('step-1'),
-        document.getElementById('step-2')
-    ];
-
-    // ตรวจออเดอร์ว่าได้สั่งไม่ได้สั่ง
-    if (!orderPlaced || cart.length === 0) {
-        statusHeading.innerText = "No Active Order";
-        statusText.innerText = "You haven't placed an order yet.";
-        statusText.classList.replace('text-warning', 'text-error');
-        billBtn.innerText = "Go to Menu";
-        billBtn.disabled = false;
-        billBtn.onclick = () => location.href = 'menu.html';
+    const container = document.getElementById('dish-status-container');
+    
+    if (orderIds.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-300 py-10 italic">No active orders</p>`;
         return;
     }
 
+    try {
+        const responses = await Promise.all(
+            orderIds.map(id => fetch(`/customer/order-status/${id}`).then(r => r.json()))
+        );
 
-    steps[0].classList.add('step-warning');
-    statusText.innerText = "Kitchen has received your request.";
+        const allItems = responses.flat();
 
-    setTimeout(() => {
-        steps[1].classList.add('step-warning');
-        statusText.innerText = "Chef is currently cooking your meal! 🔥";
-    }, 3000);
+        container.innerHTML = allItems.map(item => {
+            let statusBadge = "bg-slate-100 text-slate-400";
+            let statusText = item.status;
 
-    setTimeout(() => {
-        steps[2].classList.add('step-warning');
+            if (item.status === 'cooking') {
+                statusBadge = "bg-amber-100 text-amber-600";
+            } else if (item.status === 'serving') {
+                statusBadge = "bg-green-100 text-green-600";
+                statusText = "Ready";
+            }
 
-        statusText.innerText = "Your meal is finished and served! ✨";
-        statusText.classList.replace('text-warning', 'text-success');
-        billBtn.disabled = false;
-        billBtn.innerText = "Request Bill & Pay";
-        billBtn.classList.replace('btn-neutral', 'btn-warning');
-        billBtn.classList.add('shadow-lg', 'animate-bounce');
+            return `
+            <div class="flex justify-between items-center p-4 bg-white rounded-2xl mb-3 border border-slate-200 shadow-sm animate-in fade-in">
+                <div class="text-left">
+                    <p class="font-bold text-slate-800 tracking-tight">${item.name}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quantity: ${item.quantity}</p>
+                </div>
+                <span class="px-3 py-1 rounded-full ${statusBadge} uppercase font-black text-[9px] tracking-tighter">
+                    ${statusText}
+                </span>
+            </div>`;
+        }).join('');
 
-        billBtn.onclick = () => {
-            location.href = 'payment.html';
-        };
-    }, 8000);
+        const isAllServed = allItems.every(item => item.status === 'serving');
+        const billBtn = document.getElementById('bill-btn');
+
+        if (isAllServed && allItems.length > 0) {
+            billBtn.disabled = false;
+            billBtn.className = "btn btn-lg w-full bg-amber-400 hover:bg-amber-500 border-none text-black font-black text-lg rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95";
+            billBtn.innerText = "Proceed to Payment ➔";
+            billBtn.onclick = () => { window.location.href = 'payment.html'; };
+        } else {
+            billBtn.disabled = true;
+            billBtn.className = "btn btn-lg w-full bg-slate-100 border-none text-slate-300 font-bold rounded-2xl cursor-not-allowed";
+            billBtn.innerText = "Kitchen is preparing...";
+        }
+
+    } catch (e) {
+        console.error("Polling error:", e);
+    }
 }
 
-window.onload = initStatus;
+setInterval(checkAllOrdersStatus, 3000);
+window.onload = checkAllOrdersStatus;
