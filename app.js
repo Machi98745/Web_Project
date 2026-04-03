@@ -191,6 +191,38 @@ app.get('/admin/cooks', function (req, res) {
     });
 });
 
+// admin create cook
+app.post('/admin/cooks', function (req, res) {
+    const { cook_id, name } = req.body;
+
+    if (!name && !cook_id) return res.status(400).json({ message: 'Missing cook name or id' });
+
+    const username = name || cook_id;
+    const hash = argon2.hashSync(Math.random().toString(36).slice(2,10));
+    const status = 'enable';
+
+    if (cook_id && Number.isInteger(Number(cook_id))) {
+        // insert with provided cook_id
+        const sql = "INSERT INTO cooks (cook_id, username, password, status) VALUES (?, ?, ?, ?)";
+        con.query(sql, [cook_id, username, hash, status], function (err, result) {
+            if (err) {
+                console.error('Insert cook error', err);
+                return res.status(500).json({ message: 'Create cook failed' });
+            }
+            res.status(201).json({ message: 'Cook created' });
+        });
+    } else {
+        const sql = "INSERT INTO cooks (username, password, status) VALUES (?, ?, ?)";
+        con.query(sql, [username, hash, status], function (err, result) {
+            if (err) {
+                console.error('Insert cook error', err);
+                return res.status(500).json({ message: 'Create cook failed' });
+            }
+            res.status(201).json({ message: 'Cook created' });
+        });
+    }
+});
+
 // admin cook delete
 app.delete('/admin/cooks/:id', function (req, res) {
     con.query("DELETE FROM cooks WHERE cook_id = ?", [req.params.id], function (err) {
@@ -357,25 +389,56 @@ app.patch('/cook/order-item/:id', function (req, res) {
         return res.status(400).json({ message: 'Invalid status' });
     }
 
-    const sql = `
-        UPDATE order_item 
-        SET status = ?, updated_by = ?
-        WHERE order_item_id = ?
-    `;
-
-    con.query(sql, [status, cookId, req.params.id], function (err) {
-        if (err) {
-            console.error(err);
+    // ensure updated_at column exists
+    con.query("SHOW COLUMNS FROM order_item LIKE 'updated_at'", function (cErr, cols) {
+        if (cErr) {
+            console.error('Column check error', cErr);
             return res.status(500).json({ message: 'Update failed' });
         }
 
-        res.status(200).json({ message: 'Updated successfully' });
+        function doUpdate() {
+            const sql = `
+                UPDATE order_item 
+                SET status = ?, updated_by = ?, updated_at = NOW()
+                WHERE order_item_id = ?
+            `;
+
+            con.query(sql, [status, cookId, req.params.id], function (err) {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).json({ message: 'Update failed' });
+                }
+
+                res.status(200).json({ message: 'Updated successfully' });
+            });
+        }
+
+        if (!Array.isArray(cols) || cols.length === 0) {
+            // add column then update
+            con.query("ALTER TABLE order_item ADD COLUMN updated_at DATETIME NULL", function (aErr) {
+                if (aErr) {
+                    console.error('Failed to add updated_at column', aErr);
+                    // still attempt update without timestamp
+                    const sqlNoTs = `UPDATE order_item SET status = ?, updated_by = ? WHERE order_item_id = ?`;
+                    return con.query(sqlNoTs, [status, cookId, req.params.id], function (err2) {
+                        if (err2) {
+                            console.error(err2);
+                            return res.status(500).json({ message: 'Update failed' });
+                        }
+                        res.status(200).json({ message: 'Updated (no timestamp)' });
+                    });
+                }
+                doUpdate();
+            });
+        } else {
+            doUpdate();
+        }
     });
 });
 
 // dashboard cook
 app.get('/cook/dashboard', function (req, res) {
-    // Return overall served count and top menu items
+    // Return overall served count, top menu items, orders done and average rating
     const totalSql = `SELECT COUNT(*) AS total_served FROM order_item WHERE status = 'serving'`;
     const topSql = `
         SELECT m.menu_id, m.name, COUNT(*) AS count
@@ -386,13 +449,68 @@ app.get('/cook/dashboard', function (req, res) {
         ORDER BY count DESC
         LIMIT 6
     `;
+    const ordersDoneSql = `
+        SELECT COUNT(DISTINCT o.order_id) AS orders_done
+        FROM order_item oi
+        JOIN \`order\` o ON oi.order_id = o.order_id
+        WHERE oi.status = 'serving'
+    `;
 
     con.query(totalSql, function (err, totalRes) {
         if (err) return res.status(500).json({ message: 'DB error' });
 
         con.query(topSql, function (err, topRes) {
             if (err) return res.status(500).json({ message: 'DB error' });
-            res.json({ total_served: totalRes[0].total_served || 0, top_items: topRes });
+
+            con.query(ordersDoneSql, function (err, ordersRes) {
+                if (err) return res.status(500).json({ message: 'DB error' });
+                // compute avg cook time if updated_at exists
+                con.query("SHOW COLUMNS FROM order_item LIKE 'updated_at'", function (err, ucols) {
+                    if (err) return res.status(500).json({ message: 'DB error' });
+                    const hasUpdatedAt = Array.isArray(ucols) && ucols.length > 0;
+
+                    function sendResponse(avgTimeMinutes, avgRatingVal) {
+                        res.json({
+                            total_served: totalRes[0].total_served || 0,
+                            top_items: topRes,
+                            orders_done: ordersRes[0].orders_done || 0,
+                            avg_cook_time: avgTimeMinutes !== null ? Number(avgTimeMinutes).toFixed(1) : null,
+                            avg_rating: avgRatingVal !== null ? avgRatingVal : null
+                        });
+                    }
+
+                    function computeRatingAndSend(avgTimeMinutes) {
+                        con.query("SHOW COLUMNS FROM review LIKE 'rating'", function (err, cols) {
+                            if (err) return res.status(500).json({ message: 'DB error' });
+                            const hasRating = Array.isArray(cols) && cols.length > 0;
+                            if (!hasRating) return sendResponse(avgTimeMinutes, null);
+
+                            con.query("SELECT AVG(rating) AS avg_rating FROM review", function (err, avgRes) {
+                                if (err) return res.status(500).json({ message: 'DB error' });
+                                const avgRatingVal = avgRes[0].avg_rating ? Number(avgRes[0].avg_rating).toFixed(1) : null;
+                                sendResponse(avgTimeMinutes, avgRatingVal);
+                            });
+                        });
+                    }
+
+                    if (!hasUpdatedAt) {
+                        computeRatingAndSend(null);
+                    } else {
+                        const avgTimeSql = `
+                            SELECT AVG(TIMESTAMPDIFF(MINUTE, o.created_at, oi.updated_at)) AS avg_minutes
+                            FROM order_item oi
+                            JOIN \`order\` o ON oi.order_id = o.order_id
+                            WHERE oi.updated_at IS NOT NULL AND oi.status = 'serving'
+                        `;
+
+                        con.query(avgTimeSql, function (err, avgTimeRes) {
+                            if (err) return res.status(500).json({ message: 'DB error' });
+                            const avgMinutes = (avgTimeRes && avgTimeRes[0]) ? avgTimeRes[0].avg_minutes : null;
+                            computeRatingAndSend(avgMinutes);
+                        });
+                    }
+                });
+            });
         });
     });
 });

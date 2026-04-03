@@ -20,6 +20,18 @@ async function loadCookDashboard() {
         // total served
         document.getElementById('menus-served-val').textContent = data.total_served || 0;
 
+        // orders done
+        const ordersDoneEl = document.getElementById('orders-done-val');
+        if (ordersDoneEl) ordersDoneEl.textContent = data.orders_done || 0;
+
+        // avg rating
+        const avgRatingEl = document.getElementById('avg-rating-val');
+        if (avgRatingEl) avgRatingEl.textContent = data.avg_rating ? data.avg_rating + ' ★' : '-';
+
+        // avg cook time
+        const avgTimeEl = document.getElementById('avg-time-val');
+        if (avgTimeEl) avgTimeEl.textContent = (data.avg_cook_time !== null && data.avg_cook_time !== undefined) ? (data.avg_cook_time + ' m') : '-';
+
         // map top items
         const colors = ['bg-orange-400','bg-red-400','bg-yellow-400','bg-green-400','bg-blue-400','bg-purple-400'];
         topMenus = (data.top_items || []).map((t, i) => ({
