@@ -31,6 +31,19 @@
                 placeholder="Tell the chef what you liked..."></textarea>
         </div>
 
+        <div class="mb-6">
+            <label class="label">
+                <span class="label-text text-slate-400 uppercase text-[10px] font-black tracking-[0.2em]">Rate your experience</span>
+            </label>
+            <div id="star-row" class="flex justify-center gap-2 text-2xl text-yellow-400 cursor-pointer">
+                <span data-value="1">☆</span>
+                <span data-value="2">☆</span>
+                <span data-value="3">☆</span>
+                <span data-value="4">☆</span>
+                <span data-value="5">☆</span>
+            </div>
+        </div>
+
         <button onclick="submitReview()" 
             class="btn btn-lg bg-amber-400 hover:bg-amber-500 border-none text-black font-black w-full rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95">
             Submit & Finish

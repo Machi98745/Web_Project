@@ -146,24 +146,40 @@ app.patch('/admin/menu/:id', function (req, res) {
 
 // admin dashboard
 app.get('/admin/dashboard', function (req, res) {
-    const sql = `
+    const totalsSql = `
         SELECT 
             COUNT(DISTINCT customer_id) AS total_customers,
             SUM(total_price) AS total_payment
         FROM payment
     `;
 
-    con.query(sql, function (err, result1) {
-        con.query(
-            "SELECT COUNT(*) AS total_reviews FROM review",
-            function (err, result2) {
+    const reviewsSql = "SELECT COUNT(*) AS total_reviews FROM review";
+
+    const topSql = `
+        SELECT m.menu_id, m.name, COUNT(*) AS count
+        FROM order_item oi
+        JOIN menu m ON oi.menu_id = m.menu_id
+        GROUP BY m.menu_id
+        ORDER BY count DESC
+        LIMIT 6
+    `;
+
+    con.query(totalsSql, function (err, totalsRes) {
+        if (err) return res.status(500).json({ message: 'Server error' });
+
+        con.query(reviewsSql, function (err, reviewsRes) {
+            if (err) return res.status(500).json({ message: 'Server error' });
+
+            con.query(topSql, function (err, topRes) {
                 if (err) return res.status(500).json({ message: 'Server error' });
+
                 res.json({
-                    ...result1[0],
-                    ...result2[0]
+                    ...totalsRes[0],
+                    ...reviewsRes[0],
+                    top_menu: topRes
                 });
-            }
-        );
+            });
+        });
     });
 });
 
@@ -359,28 +375,52 @@ app.patch('/cook/order-item/:id', function (req, res) {
 
 // dashboard cook
 app.get('/cook/dashboard', function (req, res) {
-    const sql = `
-        SELECT 
-            COUNT(*) AS total_served,
-            menu_id
-        FROM order_item
-        WHERE status='serving'
-        GROUP BY menu_id
-        ORDER BY total_served DESC
-        LIMIT 1
+    // Return overall served count and top menu items
+    const totalSql = `SELECT COUNT(*) AS total_served FROM order_item WHERE status = 'serving'`;
+    const topSql = `
+        SELECT m.menu_id, m.name, COUNT(*) AS count
+        FROM order_item oi
+        JOIN menu m ON oi.menu_id = m.menu_id
+        WHERE oi.status = 'serving'
+        GROUP BY m.menu_id
+        ORDER BY count DESC
+        LIMIT 6
     `;
 
-    con.query(sql, function (err, results) {
-        if (err) return res.status(500).send('DB error');
-        res.json(results);
+    con.query(totalSql, function (err, totalRes) {
+        if (err) return res.status(500).json({ message: 'DB error' });
+
+        con.query(topSql, function (err, topRes) {
+            if (err) return res.status(500).json({ message: 'DB error' });
+            res.json({ total_served: totalRes[0].total_served || 0, top_items: topRes });
+        });
     });
 });
 
 // cook reviews
 app.get('/cook/reviews', function (req, res) {
-    con.query("SELECT * FROM review ORDER BY created_at DESC", function (err, results) {
-        if (err) return res.status(500).send('Error');
-        res.json(results);
+    // check if rating column exists, then select accordingly
+    con.query("SHOW COLUMNS FROM review LIKE 'rating'", function (err, cols) {
+        if (err) return res.status(500).json({ message: 'Unable to fetch reviews' });
+
+        const hasRating = Array.isArray(cols) && cols.length > 0;
+        const sqlWithRating = `
+            SELECT r.review_id, r.customer_id, c.table_number, r.comment, r.created_at, r.rating
+            FROM review r
+            LEFT JOIN customer c ON r.customer_id = c.customer_id
+            ORDER BY r.created_at DESC
+        `;
+        const sql = hasRating ? sqlWithRating : `
+            SELECT r.review_id, r.customer_id, c.table_number, r.comment, r.created_at
+            FROM review r
+            LEFT JOIN customer c ON r.customer_id = c.customer_id
+            ORDER BY r.created_at DESC
+        `;
+
+        con.query(sql, function (err2, results) {
+            if (err2) return res.status(500).json({ message: 'Unable to fetch reviews' });
+            res.json(results);
+        });
     });
 });
 // ------------------------------------ end cook routes ------------------------------------
@@ -549,13 +589,46 @@ app.post('/customer/complete-payment', function (req, res) {
 
 //customer review
 app.post('/customer/submit-review', function (req, res) {
-    const { customerId, comment } = req.body;
-    const sql = "INSERT INTO review (customer_id, comment, created_at) VALUES (?, ?, NOW())";
+    const { customerId, comment, rating } = req.body;
 
-    con.query(sql, [customerId, comment], function (err, result) {
-        if (err) return res.status(500).send('Review Error');
-        res.status(201).json({ message: 'Review saved' });
-    });
+    // If rating provided, try to insert with rating column. If column missing, create it and retry.
+    function insertWithoutRating() {
+        const sql = "INSERT INTO review (customer_id, comment, created_at) VALUES (?, ?, NOW())";
+        con.query(sql, [customerId, comment], function (err, result) {
+            if (err) return res.status(500).send('Review Error');
+            res.status(201).json({ message: 'Review saved' });
+        });
+    }
+
+    if (typeof rating === 'number') {
+        const sql = "INSERT INTO review (customer_id, comment, rating, created_at) VALUES (?, ?, ?, NOW())";
+        con.query(sql, [customerId, comment, rating], function (err, result) {
+            if (!err) return res.status(201).json({ message: 'Review saved' });
+
+            // If column doesn't exist (unknown column), attempt to add column then retry
+            const isUnknownCol = err && (err.code === 'ER_BAD_FIELD_ERROR' || err.errno === 1054);
+            if (isUnknownCol) {
+                con.query("ALTER TABLE review ADD COLUMN rating TINYINT NULL", function (aerr) {
+                    if (aerr) {
+                        console.error('Failed to add rating column', aerr);
+                        return insertWithoutRating();
+                    }
+                    // retry insert with rating
+                    con.query(sql, [customerId, comment, rating], function (err2) {
+                        if (err2) return insertWithoutRating();
+                        res.status(201).json({ message: 'Review saved' });
+                    });
+                });
+                return;
+            }
+
+            // other errors
+            console.error('Review insert error', err);
+            return insertWithoutRating();
+        });
+    } else {
+        insertWithoutRating();
+    }
 });
 
 // history payment customer

@@ -4,6 +4,7 @@
     let orders = [];
     let payments = [];
     let reviews = [];
+    let topMenu = [];
 
     async function loadCooks() {
         const res = await fetch('/admin/cooks');
@@ -15,6 +16,8 @@
         }
         const data = await res.json();
         cooks = Array.isArray(data) ? data : [];
+        // update active cooks stat
+        document.getElementById('active-cooks-val').innerText = cooks.filter(c => c.status === 'enable').length || 0;
         renderCooks();
     }
 
@@ -39,6 +42,28 @@
         renderPayments();
     }
 
+    async function loadDashboard() {
+        try {
+            const res = await fetch('/admin/dashboard');
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+
+            // populate stat cards
+            document.getElementById('customers-val').innerText = data.total_customers || 0;
+            document.getElementById('total-payment-val').innerText = '฿' + (data.total_payment || 0);
+            document.getElementById('avg-rating-val').innerText = (data.total_reviews || 0) + ' reviews';
+            // active cooks is derived from cooks list; set placeholder until cooks load
+            document.getElementById('active-cooks-val').innerText = '-';
+
+            // top menu: transform into structure used by renderDash
+            topMenu = (data.top_menu || []).map(t => ({ name: t.name, count: t.count }));
+            // fallback: if backend returned total_reviews only, keep topMenu empty
+            if (topMenu.length) renderDash();
+        } catch (err) {
+            console.error('loadDashboard error', err);
+        }
+    }
+
     async function loadReviews() {
         const res = await fetch('/admin/reviews');
         const data = await res.json();
@@ -52,6 +77,7 @@
         loadOrders();
         loadPayments();
         loadReviews();
+        loadDashboard();
     }
     // ── LOGIN ──
 

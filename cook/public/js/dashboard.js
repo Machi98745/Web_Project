@@ -8,15 +8,32 @@ function logout() {
 }
 
 
-// Top menus
-const topMenus = [
-    { name: 'Pad Thai',       emoji: '🍜', count: 9, color: 'bg-orange-400' },
-    { name: 'Tom Yum Goong',  emoji: '🍲', count: 7, color: 'bg-red-400'    },
-    { name: 'Chicken Curry',  emoji: '🍛', count: 6, color: 'bg-yellow-400' },
-    { name: 'Fried Rice',     emoji: '🍚', count: 5, color: 'bg-green-400'  },
-    { name: 'Caesar Salad',   emoji: '🥗', count: 4, color: 'bg-blue-400'   },
-    { name: 'Cheeseburger',   emoji: '🍔', count: 3, color: 'bg-purple-400' },
-];
+// Top menus (populated from server)
+let topMenus = [];
+
+async function loadCookDashboard() {
+    try {
+        const res = await fetch('/cook/dashboard');
+        if (!res.ok) throw new Error('Failed to load dashboard');
+        const data = await res.json();
+
+        // total served
+        document.getElementById('menus-served-val').textContent = data.total_served || 0;
+
+        // map top items
+        const colors = ['bg-orange-400','bg-red-400','bg-yellow-400','bg-green-400','bg-blue-400','bg-purple-400'];
+        topMenus = (data.top_items || []).map((t, i) => ({
+            name: t.name,
+            emoji: '🍽',
+            count: t.count,
+            color: colors[i % colors.length]
+        }));
+
+        renderTopMenus();
+    } catch (err) {
+        console.error('loadCookDashboard error', err);
+    }
+}
 
 function renderTopMenus() {
     const max = topMenus[0].count;
@@ -89,6 +106,6 @@ function renderRecentOrders() {
 
 
 // Init
-renderTopMenus();
+loadCookDashboard();
 renderHourlyChart();
 renderRecentOrders();
