@@ -1,46 +1,47 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="night">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status</title>
+    <title>Order Status</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 
-<body class="bg-base-200 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-50 min-h-screen flex flex-col">
+    <div class="p-6 bg-white border-b border-slate-200 flex justify-between items-center">
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight text-center w-full">Order Status</h2>
+    </div>
 
-    <div class="card w-full max-w-md bg-base-100 shadow-2xl border border-base-300">
-        <div class="card-body items-center text-center">
-
-            <div class="flex items-center gap-2 mb-4">
-                <span class="badge badge-warning font-bold">KITCHEN STATION</span>
-                <span id="order-id-display" class="text-xs font-mono opacity-50">#ORD-099</span>
+    <div class="p-4 space-y-6 flex-1">
+        <div class="flex justify-between items-center px-2">
+            <div>
+                <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest">Table Number</p>
+                <p id="table-number" class="text-2xl font-black text-slate-800">#00</p>
             </div>
-
-            <h2 class="card-title text-2xl mb-2" id="status-heading">Tracking Order</h2>
-            <p id="status-text" class="text-warning italic mb-8">Initializing...</p>
-
-            <ul class="steps steps-vertical w-full mb-8">
-                <li id="step-0" class="step">Order Received</li>
-                <li id="step-1" class="step">Cooking</li>
-                <li id="step-2" class="step">Meal Finished</li>
-            </ul>
-
-            <div class="card-actions w-full flex flex-col gap-2">
-                <button id="bill-btn" class="btn btn-block btn-neutral" disabled>
-                    Waiting for Kitchen...
-                </button>
-
-                <button onclick="location.href='menu.html'" class="btn btn-block btn-ghost btn-sm opacity-50">
-                    Back to Menu
-                </button>
+            <div class="text-right">
+                <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest">Order ID</p>
+                <p id="order-id" class="text-sm font-bold text-slate-500">---</p>
             </div>
         </div>
+
+        <div id="dish-status-container" class="space-y-3">
+            </div>
+    </div>
+
+    <div class="p-6 bg-white border-t border-slate-200 space-y-3 shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.05)] rounded-t-3xl">
+        <button id="bill-btn" disabled 
+            class="btn btn-lg w-full bg-amber-400 hover:bg-amber-500 border-none text-black font-black text-lg rounded-2xl shadow-xl shadow-amber-100 disabled:bg-slate-100 disabled:text-slate-300">
+            Kitchen is preparing...
+        </button>
+        
+        <button onclick="location.href='menu.html'" 
+            class="btn btn-ghost w-full text-slate-400 font-bold hover:bg-slate-50">
+            ← Back to Menu
+        </button>
     </div>
 
     <script src="/customer/public/js/status.js"></script>
 </body>
-
 </html>

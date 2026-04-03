@@ -1,29 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="night">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order</title>
+    <title>Order Tray</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
 </head>
 
-<body>
-    <div class="p-4 bg-base-100 min-h-screen flex flex-col" data-theme="night">
-        <div class="flex items-center gap-4 mb-6">
-            <button onclick="location.href='menu.html'" class="btn btn-ghost btn-circle">←</button>
-            <h2 class="text-2xl font-bold">Your Tray</h2>
-        </div>
-
-        <div id="cart-list" class="flex-1 space-y-3"></div>
-
-        <div class="mt-auto border-t border-base-300 pt-4">
-            <button id="order-btn" class="btn btn-warning btn-block shadow-lg font-bold">Confirm & Place Order</button>
-        </div>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+    <div class="p-6 bg-white border-b border-slate-200 flex items-center gap-4">
+        <button onclick="location.href='menu.html'" class="btn btn-ghost btn-circle text-slate-400 hover:bg-slate-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+        </button>
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Your Tray</h2>
     </div>
+
+    <div id="cart-list" class="flex-1 p-4 space-y-3 overflow-y-auto">
+        </div>
+
+    <div class="p-6 bg-white border-t border-slate-200 shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.05)] rounded-t-3xl">
+        <div class="flex justify-between items-end mb-6">
+            <div>
+                <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">Total to pay</p>
+                <p id="display-total" class="text-4xl font-black text-slate-900">0<span class="text-amber-400 ml-1">฿</span></p>
+            </div>
+            <p class="text-xs text-slate-300 italic font-medium">Kitchen Station</p>
+        </div>
+
+        <button id="order-btn" class="btn btn-lg w-full bg-amber-400 hover:bg-amber-500 border-none text-black font-black text-lg rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95 disabled:bg-slate-100 disabled:text-slate-300">
+            Confirm & Place Order
+        </button>
+    </div>
+
     <script src="/customer/public/js/ordercart.js"></script>
 </body>
-
 </html>

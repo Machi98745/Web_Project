@@ -1,81 +1,73 @@
-const initialMenuItems = [
-    { id: 1, name: 'Pad Thai', price: 80, category: 'Main Dish', stock: 10 },
-    { id: 2, name: 'Cheeseburger', price: 120, category: 'Main Dish', stock: 5 },
-    { id: 3, name: 'Greek Salad', price: 90, category: 'Main Dish', stock: 8 },
-    { id: 4, name: 'Caesar Salad', price: 95, category: 'Main Dish', stock: 7 },
-    { id: 5, name: 'Margherita Pizza', price: 180, category: 'Main Dish', stock: 4 },
-    { id: 6, name: 'Spaghetti Carbonara', price: 150, category: 'Main Dish', stock: 6 },
-    { id: 7, name: 'Sushi Platter', price: 250, category: 'Main Dish', stock: 3 },
-    { id: 8, name: 'Chicken Curry', price: 110, category: 'Main Dish', stock: 9 },
-    { id: 9, name: 'Tom Yum Goong', price: 130, category: 'Main Dish', stock: 5 },
-    { id: 10, name: 'Massaman Curry', price: 130, category: 'Main Dish', stock: 6 },
-    { id: 11, name: 'Papaya Salad', price: 70, category: 'Main Dish', stock: 15 },
-    { id: 12, name: 'Fried Rice', price: 60, category: 'Main Dish', stock: 20 },
-    { id: 13, name: 'Pepperoni Pizza', price: 200, category: 'Main Dish', stock: 4 },
-    { id: 14, name: 'Garlic Bread', price: 50, category: 'Main Dish', stock: 12 },
-    { id: 15, name: 'Steamed Rice', price: 20, category: 'Main Dish', stock: 30 },
-    { id: 16, name: 'Iced Tea', price: 40, category: 'Drink', stock: 25 },
-    { id: 17, name: 'Lemonade', price: 45, category: 'Drink', stock: 20 },
-    { id: 18, name: 'Thai Iced Tea', price: 50, category: 'Drink', stock: 15 },
-    { id: 19, name: 'Green Tea', price: 40, category: 'Drink', stock: 25 },
-    { id: 20, name: 'Soda', price: 25, category: 'Drink', stock: 40 }
-];
-
-
-let inventory = JSON.parse(localStorage.getItem('kitchen_inventory')) || initialMenuItems;
-let cart = JSON.parse(localStorage.getItem('kitchen_cart')) || [];
+let inventory = [];
+let cart = JSON.parse(sessionStorage.getItem('kitchen_cart')) || [];
 let currentFilter = 'all';
+
+async function loadMenu() {
+    try {
+        const res = await fetch('/customer/menu-data');
+        if (res.ok) {
+            inventory = await res.json();
+            renderMenu();
+        }
+    } catch (e) {
+        console.error("Failed to load menu", e);
+    }
+}
 
 function renderMenu(filter = 'all', search = '') {
     const grid = document.getElementById('menu-grid');
     currentFilter = filter;
-    // ค้นหาเมนู
+
     const filtered = inventory.filter(item => {
-        const matchesCat = filter === 'all' || item.category === filter;
+        const isDrink = item.menu_id >= 2000;
+        const matchesCat = filter === 'all' || 
+                          (filter === 'Drink' && isDrink) || 
+                          (filter === 'Main Dish' && !isDrink);
+        
         const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
         return matchesCat && matchesSearch;
     });
 
     grid.innerHTML = filtered.map(item => {
-        const isOut = item.stock <= 0;
-        return `
-        <div class="card bg-base-100 border border-base-300 shadow-sm ${isOut ? 'opacity-50' : ''}">
-            <div class="p-4">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-sm leading-tight">${item.name}</h3>
-                    <span class="text-warning font-bold text-sm">${item.price}฿</span>
-                </div>
-                <div class="flex justify-between items-center mt-4">
-                    <span class="text-[10px] uppercase font-bold ${item.stock < 3 ? 'text-error' : 'opacity-40'}">
-                        Stock: ${item.stock}
-                    </span>
-                    <button onclick="addToCart(${item.id})" 
-                        class="btn btn-xs btn-warning ${isOut ? 'btn-disabled' : ''}" 
-                        ${isOut ? 'disabled' : ''}>
-                        ${isOut ? 'Sold Out' : '+ Add'}
-                    </button>
-                </div>
+    const isOut = item.status === 'disable';
+    return `
+    <div class="card bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden ${isOut ? 'opacity-50' : ''}">
+        <div class="p-4 flex flex-col h-full">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="font-bold text-slate-800 leading-tight">${item.name}</h3>
             </div>
-        </div>`;
-    }).join('');
+            <div class="mt-auto">
+                <p class="text-amber-500 font-black mb-3">${item.price}฿</p>
+                <button onclick="addToCart(${item.menu_id})" 
+                    class="btn btn-sm w-full bg-slate-100 hover:bg-amber-400 border-none text-slate-600 hover:text-black font-bold rounded-xl transition-all"
+                    ${isOut ? 'disabled' : ''}>
+                    ${isOut ? 'Sold Out' : '+ Add'}
+                </button>
+            </div>
+        </div>
+    </div>`;
+}).join('');
     updateUI();
 }
 
 function addToCart(id) {
-    const idx = inventory.findIndex(i => i.id === id);
-    if (inventory[idx].stock > 0) {
-        inventory[idx].stock--;
-        const itemToAdd = { ...inventory[idx], cartId: Date.now() };
+    const item = inventory.find(i => i.menu_id === id);
+    if (item) {
+        const itemToAdd = { ...item, cartId: Date.now() };
         cart.push(itemToAdd);
         save();
-        renderMenu(currentFilter, document.getElementById('searchInput').value);
+        updateUI();
     }
 }
-// แยกประเภท
+
 function filterCategory(cat) {
     document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.toggle('btn-warning', btn.dataset.cat === cat);
-        btn.classList.toggle('btn-outline', btn.dataset.cat !== cat);
+        const isMatch = (cat === 'all' && btn.innerText === 'All') || 
+                        (cat === 'Main Dish' && btn.innerText === 'Main Dish') ||
+                        (cat === 'Drink' && btn.innerText === 'Drinks');
+        
+        btn.classList.toggle('btn-warning', isMatch);
+        btn.classList.toggle('btn-outline', !isMatch);
     });
     renderMenu(cat, document.getElementById('searchInput').value);
 }
@@ -83,14 +75,28 @@ function filterCategory(cat) {
 document.getElementById('searchInput').oninput = (e) => renderMenu(currentFilter, e.target.value);
 
 function save() {
-    localStorage.setItem('kitchen_cart', JSON.stringify(cart));
-    localStorage.setItem('kitchen_inventory', JSON.stringify(inventory));
+    sessionStorage.setItem('kitchen_cart', JSON.stringify(cart));
 }
 
 function updateUI() {
     const total = cart.reduce((sum, item) => sum + item.price, 0);
     document.getElementById('total-price').innerText = total + " THB";
-    document.getElementById('cart-count').innerText = cart.length;
+    const countEl = document.getElementById('cart-count');
+    if (countEl) countEl.innerText = cart.length;
+}
+function checkActiveOrder() {
+    const orderIds = JSON.parse(sessionStorage.getItem('allOrderIds')) || [];
+    const statusBtn = document.querySelector('.fixed.top-4.right-4'); // อ้างอิงปุ่มลอย
+    
+    if (statusBtn) {
+        if (orderIds.length > 0) {
+            statusBtn.classList.remove('hidden');
+        } else {
+            statusBtn.classList.add('hidden');
+        }
+    }
 }
 
-window.onload = () => renderMenu();
+window.addEventListener('load', checkActiveOrder);
+
+window.onload = loadMenu;

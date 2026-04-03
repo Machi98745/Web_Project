@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visit Summary - Kitchen Station</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col items-center justify-center p-6">
+    <div class="max-w-md w-full mx-auto">
+        <div class="text-center mb-8">
+            <div class="inline-block bg-amber-100 text-amber-600 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-[0.2em] mb-3">
+                Success
+            </div>
+            <h2 class="text-4xl font-black text-slate-800 tracking-tight">Thank You!</h2>
+            <p class="text-slate-400 text-sm mt-1">We hope you enjoyed your meal.</p>
+        </div>
+
+        <div class="card bg-white shadow-sm mb-4 border border-slate-200 rounded-3xl overflow-hidden">
+            <div class="card-body p-6">
+                <h3 class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">Total Paid</h3>
+                <div id="payment-amount" class="text-4xl font-black text-slate-900 italic">0<span class="text-amber-400 ml-1">฿</span></div>
+                <div id="payment-time" class="text-[10px] font-bold text-slate-300 uppercase mt-2 tracking-tighter text-right">Loading...</div>
+            </div>
+        </div>
+
+        <div class="card bg-white shadow-sm mb-10 border border-slate-200 rounded-3xl overflow-hidden">
+            <div class="card-body p-6">
+                <h3 class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-2">Your Feedback</h3>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p id="history-comment" class="italic text-sm text-slate-600">"No comment provided"</p>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="finishSession()" class="btn btn-ghost btn-block text-slate-300 font-bold hover:bg-white hover:text-red-400 transition-all uppercase text-xs tracking-widest">
+            Log Out / Finish Session
+        </button>
+    </div>
+
+    <script src="/customer/public/js/history.js"></script>
+</body>
+</html>
