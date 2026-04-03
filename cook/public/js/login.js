@@ -16,7 +16,7 @@ function switchCard(view) {
 
 // Login
 async function doLogin() {
-    const cookId   = document.getElementById('cookId').value.trim();
+    const cookId = document.getElementById('cookId').value.trim();
     const password = document.getElementById('cookPass').value;
     const errBanner = document.getElementById('loginErr');
  
@@ -31,19 +31,22 @@ async function doLogin() {
         const res = await fetch('/cook/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cookId, password })  // ✅ แก้จาก username → cookId
+            body: JSON.stringify({ cookId, password }) 
         });
  
         if (res.ok) {
             const data = await res.json();
             sessionStorage.setItem('cookId', data.cookId);
-            sessionStorage.setItem('cookName', data.name);  // ✅ แก้จาก data.cookName → data.name
-            window.location.href = '/cook/view/orders.html';
+            sessionStorage.setItem('cookName', data.name); 
+            window.location.href = '/cook/view/orders.html'; 
         } else {
+            const errorData = await res.json();
             errBanner.classList.remove('hidden');
+            console.error(errorData.message);
         }
     } catch (e) {
-        errBanner.classList.remove('hidden');
+        console.error("Connection error:", e);
+        alert("Cannot connect to server");
     }
 }
 
