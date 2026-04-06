@@ -125,10 +125,25 @@
                 </span>
             </td>
             <td>
-                <button onclick="deleteCook(${c.cook_id})">✕</button>
+                <label class="toggle"><input type="checkbox" ${c.status === 'enable' ? 'checked' : ''} onchange="toggleCook(${c.cook_id}, this.checked)"><span class="slider"></span></label>
+                <button style="margin-left:8px;" onclick="deleteCook(${c.cook_id})">✕</button>
             </td>
             </tr>
         `).join('');
+    }
+
+    async function toggleCook(cookId, enabled) {
+        try {
+            await fetch(`/admin/cook/${cookId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: enabled ? 'enable' : 'disable' })
+            });
+            loadCooks();
+        } catch (err) {
+            console.error('toggleCook error', err);
+            loadCooks();
+        }
     }
 
     async function deleteCook(cookId) {
@@ -234,11 +249,27 @@
 
         if (!name || !cook_id) return;
 
-        await fetch('/admin/cooks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cook_id, name })
-        });
+        try {
+            const res = await fetch('/admin/cooks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cook_id, name })
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                if (data.password) {
+                    alert('Cook created. Temporary password: ' + data.password);
+                } else {
+                    alert('Cook created');
+                }
+            } else {
+                alert('Failed to create cook: ' + (data.message || res.statusText));
+            }
+        } catch (err) {
+            console.error('addCook error', err);
+            alert('Cannot contact server');
+        }
 
         loadCooks();
         closeModal('cook');

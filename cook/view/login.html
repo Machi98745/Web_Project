@@ -61,26 +61,13 @@
  
             <button onclick="switchCard('login')" class="text-base-content/40 text-xs hover:text-base-content/70 self-start transition-colors">← Back to login</button>
  
-            <h2 class="card-title text-2xl">Create account</h2>
- 
-            <fieldset class="fieldset">
-                <p class="fieldset-legend">Cook ID</p>
-                <input id="regId" type="text" class="input w-full" placeholder="e.g. C001" />
-            </fieldset>
- 
-            <fieldset class="fieldset">
-                <p class="fieldset-legend">Display Name</p>
-                <input id="regName" type="text" class="input w-full" placeholder="Your name" />
-            </fieldset>
- 
+            <h2 class="card-title text-2xl">Register</h2>
+
+            <p class="text-sm text-gray-500 mb-2">Register and a Cook ID will be generated for you. Admin will enable your account.</p>
+
             <fieldset class="fieldset">
                 <p class="fieldset-legend">Password</p>
                 <input id="regPass" type="password" class="input w-full" placeholder="Min 4 characters" />
-            </fieldset>
- 
-            <fieldset class="fieldset">
-                <p class="fieldset-legend">Confirm Password</p>
-                <input id="regPass2" type="password" class="input w-full" placeholder="Repeat password" />
             </fieldset>
  
             <div id="regErr" class="alert alert-error hidden text-sm">
@@ -91,7 +78,7 @@
             </div>
  
             <div class="card-actions mt-2">
-                <button class="btn btn-warning w-full" onclick="doRegister()">Create Account</button>
+                <button class="btn btn-warning w-full" onclick="doRegister()">Register</button>
             </div>
         </div>
     </div>

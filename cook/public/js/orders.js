@@ -3,9 +3,8 @@ const cookName = sessionStorage.getItem('cookId') || 'Cook';
 document.getElementById('cookName').textContent = cookName;
 
 function logout() {
-    if (!sessionStorage.getItem('cookId')) {
-        window.location.href = '/cook/view/login.html';
-    }
+    sessionStorage.clear();
+    window.location.href = '/cook/view/login.html';
 }
 
 

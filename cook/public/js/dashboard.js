@@ -68,56 +68,109 @@ function renderTopMenus() {
 }
 
 
-// Hourly trend
-const hourlyData = [
-    { h: '08:00', count: 2  },
-    { h: '09:00', count: 5  },
-    { h: '10:00', count: 8  },
-    { h: '11:00', count: 6  },
-    { h: '12:00', count: 12 },
-    { h: '13:00', count: 7  },
-    { h: '14:00', count: 4  },
-    { h: '15:00', count: 3  },
-];
+// Hourly trend (loaded from server)
+let hourlyData = [];
+
+function buildHourlySlots(data) {
+    // data: [{hour: 8, count: N}, ...]
+    // Build slots between 8..17 (or based on data range)
+    const slots = [];
+    const hours = [];
+    // choose range from min to max hour in data or default 8-17
+    if (data && data.length) {
+        const hrs = data.map(d => d.hour);
+        const minH = Math.min(...hrs);
+        const maxH = Math.max(...hrs);
+        for (let h = Math.max(0, minH); h <= Math.min(23, maxH); h++) hours.push(h);
+    } else {
+        for (let h = 8; h <= 17; h++) hours.push(h);
+    }
+
+    for (const h of hours) {
+        const found = (data || []).find(d => Number(d.hour) === Number(h));
+        slots.push({ h: (h < 10 ? '0' + h + ':00' : h + ':00'), count: found ? found.count : 0 });
+    }
+    return slots;
+}
 
 function renderHourlyChart() {
-    const max = Math.max(...hourlyData.map(h => h.count));
+    const slots = buildHourlySlots(hourlyData);
+    const max = slots.length ? Math.max(...slots.map(h => h.count)) : 1;
 
-    document.getElementById('hourlyChart').innerHTML = hourlyData.map(h => `
+    document.getElementById('hourlyChart').innerHTML = slots.map(h => `
         <div class="flex items-center gap-3">
             <span class="text-xs mono text-gray-400 w-10 shrink-0">${h.h}</span>
             <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
-                <div class="bg-yellow-400 h-2 rounded-full" style="width:${Math.round(h.count / max * 100)}%"></div>
+                <div class="bg-yellow-400 h-2 rounded-full" style="width:${max === 0 ? 0 : Math.round(h.count / max * 100)}%"></div>
             </div>
             <span class="text-xs mono text-gray-400 w-4 text-right">${h.count}</span>
         </div>
     `).join('');
 }
 
+async function loadHourlyData() {
+    try {
+        const res = await fetch('/cook/orders-by-hour');
+        if (!res.ok) throw new Error('Failed to load hourly data');
+        const data = await res.json();
+        hourlyData = Array.isArray(data) ? data : [];
+        renderHourlyChart();
+    } catch (err) {
+        console.error('loadHourlyData error', err);
+    }
+}
 
-// Recent served orders
-const recentOrders = [
-    { id: 'ORD-030', table: 'T-02', items: ['Caesar Salad', 'Pepperoni Pizza'], time: '10:20', mins: 15 },
-    { id: 'ORD-029', table: 'T-06', items: ['Pad Thai', 'Green Tea'],           time: '11:10', mins: 11 },
-    { id: 'ORD-028', table: 'T-02', items: ['Fried Rice', 'Tom Yum'],           time: '10:55', mins: 9  },
-    { id: 'ORD-027', table: 'T-08', items: ['Chicken Curry', 'Steamed Rice'],   time: '10:30', mins: 14 },
-];
+
+// Recent served orders (loaded from server)
+let recentOrders = [];
+
+function formatTime(ts) {
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function calcMinutes(start, end) {
+    const s = new Date(start).getTime();
+    const e = new Date(end).getTime();
+    if (!s || !e) return 0;
+    return Math.max(0, Math.round((e - s) / 60000));
+}
 
 function renderRecentOrders() {
-    document.getElementById('recentOrders').innerHTML = recentOrders.map(o => `
+    const el = document.getElementById('recentOrders');
+    if (!recentOrders || recentOrders.length === 0) {
+        el.innerHTML = `<p class="text-center text-gray-400 text-sm mt-6">No recent served orders</p>`;
+        return;
+    }
+
+    el.innerHTML = recentOrders.map(o => {
+        const orderLabel = 'ORD-' + String(o.order_id).padStart(3, '0');
+        return `
         <div class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
             <span class="w-2 h-2 bg-green-400 rounded-full shrink-0"></span>
-            <span class="mono text-xs text-yellow-500 w-20 shrink-0">${o.id}</span>
-            <span class="text-gray-400 font-normal">${o.items.join(', ')}</span>
-            </span>
-            <span class="text-xs text-gray-400 mono">${o.mins}m</span>
-            <span class="text-xs mono text-gray-300">${o.time}</span>
+            <span class="mono text-xs text-yellow-500 w-20 shrink-0">${orderLabel}</span>
+            <span class="text-gray-400 font-normal">${o.menu_name}${o.quantity > 1 ? ' x' + o.quantity : ''}</span>
+            <span class="text-xs mono text-gray-300 ml-auto">${formatTime(o.updated_at || o.created_at)}</span>
         </div>
-    `).join('');
+    `}).join('');
+}
+
+async function loadRecentOrders() {
+    try {
+        const res = await fetch('/cook/recent-served');
+        if (!res.ok) throw new Error('Failed to load recent served');
+        const data = await res.json();
+        recentOrders = Array.isArray(data) ? data : [];
+        renderRecentOrders();
+    } catch (err) {
+        console.error('loadRecentOrders error', err);
+        recentOrders = [];
+        renderRecentOrders();
+    }
 }
 
 
 // Init
 loadCookDashboard();
-renderHourlyChart();
-renderRecentOrders();
+loadHourlyData();
+loadRecentOrders();
