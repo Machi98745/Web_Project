@@ -87,6 +87,8 @@
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('password').value = '';
         document.getElementById('login-error').style.display = 'none';
+        // clear persisted login state
+        try { localStorage.removeItem('adminLoggedIn'); } catch (e) { /* ignore */ }
     }
 
     // ── NAVIGATION ──
@@ -118,7 +120,6 @@
             <tr>
             <td>${c.cook_id}</td>
             <td>${c.name}</td>
-            <td>-</td>
             <td>
                 <span class="badge ${c.status === 'enable' ? 'badge-on' : 'badge-off'}">
                     ${c.status}
@@ -351,6 +352,7 @@
             const data = await response.json();
 
             if (response.ok) {
+                try { localStorage.setItem('adminLoggedIn', '1'); } catch (e) { /* ignore */ }
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app').style.display = 'block';
                 renderAll();
@@ -364,3 +366,22 @@
             errorMsg.style.display = 'block';
         }
     }
+
+    // Initialize auth state on page load so refresh doesn't force login
+    (function initAuth() {
+        try {
+            const logged = localStorage.getItem('adminLoggedIn') === '1';
+            if (logged) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                renderAll();
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app').style.display = 'none';
+            }
+        } catch (e) {
+            // if localStorage is unavailable, default to login screen
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('app').style.display = 'none';
+        }
+    })();
