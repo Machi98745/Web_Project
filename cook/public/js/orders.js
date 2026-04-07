@@ -66,8 +66,6 @@ async function loadOrders(status = 'pending') {
     try {
         const res = await fetch(`/cook/orders?status=${status}`);
         const data = await res.json();
-
-        // 🔥 แปลงข้อมูลจาก DB → format ที่ UI ใช้
         itemCards = data.map(item => ({
             order_item_id: item.order_item_id,
             orderId: `ORD-${item.order_id}`,
