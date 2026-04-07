@@ -61,7 +61,6 @@ app.get("/customer/view/ordercart", function (req, res) {
 app.get("/customer/view/payment", function (req, res) {
   res.status(200).sendFile(path.join(__dirname, "/customer/view/payment.html"));
 });
-// Note: static files under /customer/view are served by express.static above
 
 app.get("/password/:raw", function (req, res) {
   const raw = req.params.raw;
@@ -70,6 +69,7 @@ app.get("/password/:raw", function (req, res) {
   res.status(200).send(hash);
 });
 
+// ------------------------------------ admin routes ------------------------------------
 // admin login
 app.post("/admin/login", async function (req, res) {
   const { adminID, password } = req.body;
@@ -103,7 +103,6 @@ app.post("/admin/login", async function (req, res) {
 });
 
 // admin update cook status
-// admin update cook status (no notes)
 app.patch("/admin/cook/:id", function (req, res) {
   const { status } = req.body;
 
@@ -243,7 +242,6 @@ app.post("/admin/cooks", function (req, res) {
   const status = "enable";
 
   if (cook_id && Number.isInteger(Number(cook_id))) {
-    // insert with provided cook_id
     const sql =
       "INSERT INTO cooks (cook_id, username, password, status) VALUES (?, ?, ?, ?)";
     con.query(sql, [cook_id, username, hash, status], function (err, result) {
@@ -351,7 +349,6 @@ app.get("/admin/payments", function (req, res) {
 
 // admin reviews list
 app.get("/admin/reviews", function (req, res) {
-  // include rating if column exists
   con.query("SHOW COLUMNS FROM review LIKE 'rating'", function (err, cols) {
     if (err)
       return res.status(500).json({ message: "Unable to fetch reviews" });
@@ -377,6 +374,54 @@ app.get("/admin/reviews", function (req, res) {
     });
   });
 });
+
+app.post("/cook/register", function (req, res) {
+  const { cookId, password } = req.body;
+
+  function insertWithUsername(username) {
+    const hash = argon2.hashSync(password);
+    const insertSql =
+      "INSERT INTO cooks (username, password, status) VALUES (?, ?, 'disable')";
+    con.query(insertSql, [username, hash], function (err, result) {
+      if (err) {
+        console.error("Insert cook error", err);
+        return res.status(500).send("Server error");
+      }
+      return res
+        .status(201)
+        .json({ message: "Account created", cookId: username });
+    });
+  }
+
+  if (cookId && String(cookId).trim()) {
+    const checkSql = "SELECT cook_id FROM cooks WHERE username = ?";
+    con.query(checkSql, [cookId], function (err, results) {
+      if (err) return res.status(500).send("Server error");
+      if (results.length > 0)
+        return res.status(409).json({ message: "Cook ID already exists" });
+      insertWithUsername(String(cookId).trim());
+    });
+  } else {
+    // Generate next cook id in format C001, C002, ...
+    const maxSql =
+      "SELECT MAX(CAST(SUBSTRING(username,2) AS UNSIGNED)) AS maxnum FROM cooks WHERE username REGEXP '^C[0-9]+'";
+    con.query(maxSql, function (err, rows) {
+      if (err) {
+        console.error("Failed to get max cook id", err);
+        // fallback: insert with timestamp-based id
+        const gen = "C" + Date.now().toString().slice(-6);
+        return insertWithUsername(gen);
+      }
+      const maxnum =
+        rows && rows[0] && rows[0].maxnum ? Number(rows[0].maxnum) : 0;
+      const next = maxnum + 1;
+      const username = "C" + String(next).padStart(3, "0");
+      insertWithUsername(username);
+    });
+  }
+});
+
+// ------------------------------------ end admin routes ------------------------------------
 
 // ------------------------------------ cook routes ------------------------------------
 // cook login
@@ -525,7 +570,6 @@ app.patch("/cook/order-item/:id", function (req, res) {
 
 // dashboard cook
 app.get("/cook/dashboard", function (req, res) {
-  // Return overall served count, top menu items, orders done and average rating
   const totalSql = `SELECT COUNT(*) AS total_served FROM order_item WHERE status = 'serving'`;
   const topSql = `
         SELECT m.menu_id, m.name, COUNT(*) AS count
@@ -563,7 +607,6 @@ app.get("/cook/dashboard", function (req, res) {
 
 // cook reviews
 app.get("/cook/reviews", function (req, res) {
-  // check if rating column exists, then select accordingly
   con.query("SHOW COLUMNS FROM review LIKE 'rating'", function (err, cols) {
     if (err)
       return res.status(500).json({ message: "Unable to fetch reviews" });
@@ -629,8 +672,6 @@ app.get("/cook/orders-by-hour", function (req, res) {
       console.error("orders-by-hour error", err);
       return res.status(500).json({ message: "Unable to fetch hourly data" });
     }
-
-    // Transform into array of { hr, cnt }
     res.json(results.map((r) => ({ hour: r.hr, count: r.cnt })));
   });
 });
@@ -836,8 +877,6 @@ app.post("/customer/complete-payment", function (req, res) {
 //customer review
 app.post("/customer/submit-review", function (req, res) {
   const { customerId, comment, rating } = req.body;
-
-  // If rating provided, try to insert with rating column. If column missing, create it and retry.
   function insertWithoutRating() {
     const sql =
       "INSERT INTO review (customer_id, comment, created_at) VALUES (?, ?, NOW())";
@@ -852,8 +891,6 @@ app.post("/customer/submit-review", function (req, res) {
       "INSERT INTO review (customer_id, comment, rating, created_at) VALUES (?, ?, ?, NOW())";
     con.query(sql, [customerId, comment, rating], function (err, result) {
       if (!err) return res.status(201).json({ message: "Review saved" });
-
-      // If column doesn't exist (unknown column), attempt to add column then retry
       const isUnknownCol =
         err && (err.code === "ER_BAD_FIELD_ERROR" || err.errno === 1054);
       if (isUnknownCol) {
@@ -864,7 +901,6 @@ app.post("/customer/submit-review", function (req, res) {
               console.error("Failed to add rating column", aerr);
               return insertWithoutRating();
             }
-            // retry insert with rating
             con.query(sql, [customerId, comment, rating], function (err2) {
               if (err2) return insertWithoutRating();
               res.status(201).json({ message: "Review saved" });
@@ -873,8 +909,6 @@ app.post("/customer/submit-review", function (req, res) {
         );
         return;
       }
-
-      // other errors
       console.error("Review insert error", err);
       return insertWithoutRating();
     });
@@ -920,54 +954,6 @@ app.post("/customer/logout/:customerId", function (req, res) {
   });
 });
 // ------------------------------------ end customer routes ------------------------------------
-
-// admin create
-app.post("/cook/register", function (req, res) {
-  const { cookId, password } = req.body;
-
-  function insertWithUsername(username) {
-    const hash = argon2.hashSync(password);
-    const insertSql =
-      "INSERT INTO cooks (username, password, status) VALUES (?, ?, 'disable')";
-    con.query(insertSql, [username, hash], function (err, result) {
-      if (err) {
-        console.error("Insert cook error", err);
-        return res.status(500).send("Server error");
-      }
-      return res
-        .status(201)
-        .json({ message: "Account created", cookId: username });
-    });
-  }
-
-  if (cookId && String(cookId).trim()) {
-    // If client provided an ID, ensure it doesn't exist
-    const checkSql = "SELECT cook_id FROM cooks WHERE username = ?";
-    con.query(checkSql, [cookId], function (err, results) {
-      if (err) return res.status(500).send("Server error");
-      if (results.length > 0)
-        return res.status(409).json({ message: "Cook ID already exists" });
-      insertWithUsername(String(cookId).trim());
-    });
-  } else {
-    // Generate next cook id in format C001, C002, ...
-    const maxSql =
-      "SELECT MAX(CAST(SUBSTRING(username,2) AS UNSIGNED)) AS maxnum FROM cooks WHERE username REGEXP '^C[0-9]+'";
-    con.query(maxSql, function (err, rows) {
-      if (err) {
-        console.error("Failed to get max cook id", err);
-        // fallback: insert with timestamp-based id
-        const gen = "C" + Date.now().toString().slice(-6);
-        return insertWithUsername(gen);
-      }
-      const maxnum =
-        rows && rows[0] && rows[0].maxnum ? Number(rows[0].maxnum) : 0;
-      const next = maxnum + 1;
-      const username = "C" + String(next).padStart(3, "0");
-      insertWithUsername(username);
-    });
-  }
-});
 
 app.listen(3000, function () {
   console.log("Server is running on port 3000");
