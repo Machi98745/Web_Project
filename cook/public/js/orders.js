@@ -1,6 +1,34 @@
 // Auth
-const cookName = sessionStorage.getItem('cookId') || 'Cook';
+let cookName = 'Cook';
 document.getElementById('cookName').textContent = cookName;
+
+async function loadCookNameFromServer() {
+    try {
+        const cached = sessionStorage.getItem('cookName');
+        if (cached) {
+            cookName = cached;
+            document.getElementById('cookName').textContent = cookName;
+            return;
+        }
+
+        const cookId = sessionStorage.getItem('cookId');
+        if (!cookId) return;
+
+        const res = await fetch(`/cook/info?cookId=${encodeURIComponent(cookId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.name) {
+            cookName = data.name;
+            sessionStorage.setItem('cookName', cookName);
+            document.getElementById('cookName').textContent = cookName;
+        }
+    } catch (e) {
+        console.error('Failed to load cook name', e);
+    }
+}
+
+// Try to load cook name immediately
+loadCookNameFromServer();
 
 function logout() {
     sessionStorage.clear();
@@ -18,47 +46,10 @@ function isDrink(itemName) {
 }
 
 
-// Raw order data
-async function loadOrders(status) {
-    const res = await fetch(`/cook/orders?status=${status}`);
-    const data = await res.json();
-}
+// Polling / state guards to avoid duplicate claims
+let isPollingPaused = false;
+let isUpdating = false;
 
-
-// Split items: one card per food, one grouped card for drinks 
-function buildItemCards(orders) {
-    const cards = [];
-
-    for (const order of orders) {
-        const foodItems = order.items.filter(item => !isDrink(item));
-        const drinkItems = order.items.filter(item => isDrink(item));
-
-        for (const item of foodItems) {
-            cards.push({
-                orderId: order.id,
-                table: order.table,
-                time: order.time,
-                type: 'food',
-                label: item,
-                status: 'pending',
-            });
-        }
-
-        if (drinkItems.length > 0) {
-            cards.push({
-                orderId: order.id,
-                table: order.table,
-                time: order.time,
-                type: 'drink',
-                label: drinkItems.join(', '),
-                items: drinkItems,
-                status: 'pending',
-            });
-        }
-    }
-
-    return cards;
-}
 
 let itemCards = [];
 
@@ -66,6 +57,7 @@ async function loadOrders(status = 'pending') {
     try {
         const res = await fetch(`/cook/orders?status=${status}`);
         const data = await res.json();
+
         itemCards = data.map(item => ({
             order_item_id: item.order_item_id,
             orderId: `ORD-${item.order_id}`,
@@ -84,11 +76,13 @@ async function loadOrders(status = 'pending') {
     }
 }
 
+
 // Confirm modal
 let pendingAdvanceIndex = null;
 
 function askAdvance(index) {
     pendingAdvanceIndex = index;
+    isPollingPaused = true;
 
     const card = itemCards[index];
     const nextLabel = card.status === 'pending' ? 'Cooking' : 'Served';
@@ -101,6 +95,11 @@ function askAdvance(index) {
 
 async function confirmAdvance() {
     if (pendingAdvanceIndex === null) return;
+    if (isUpdating) return;
+    isUpdating = true;
+
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) confirmBtn.disabled = true;
 
     const card = itemCards[pendingAdvanceIndex];
     pendingAdvanceIndex = null;
@@ -125,6 +124,13 @@ async function confirmAdvance() {
             })
         });
 
+        if (res.status === 409) {
+            alert('The order has been taken by someone else — refresh the list.');
+            closeModal();
+            loadOrders(currentTab);
+            return;
+        }
+
         if (!res.ok) {
             alert("Update failed");
             return;
@@ -135,12 +141,17 @@ async function confirmAdvance() {
 
     } catch (err) {
         console.error(err);
+    } finally {
+        isUpdating = false;
+        if (confirmBtn) confirmBtn.disabled = false;
+        isPollingPaused = false;
     }
 }
 
 function closeModal() {
     document.getElementById('confirmModal').classList.add('hidden');
     pendingAdvanceIndex = null;
+    isPollingPaused = false;
 }
 
 
@@ -212,8 +223,10 @@ function setTab(tab) {
     });
 
     const active = document.getElementById('tab-' + tab);
-    active.classList.add('bg-green-700', 'text-white');
-    active.classList.remove('bg-gray-200', 'text-gray-600');
+    if (active) {
+        active.classList.add('bg-green-700', 'text-white');
+        active.classList.remove('bg-gray-200', 'text-gray-600');
+    }
 
     loadOrders(tab);
 }
@@ -221,3 +234,8 @@ function setTab(tab) {
 
 // Init
 setTab('pending');
+
+// Poll every 3s to keep list fresh and reduce race window
+setInterval(() => {
+    if (!isPollingPaused) loadOrders(currentTab);
+}, 3000);

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 03, 2026 at 08:13 AM
+-- Generation Time: Apr 08, 2026 at 03:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `web_project`
 --
+CREATE DATABASE IF NOT EXISTS `Web_Project` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `Web_Project`;
 
 -- --------------------------------------------------------
 
@@ -58,10 +60,13 @@ CREATE TABLE `cooks` (
 --
 
 INSERT INTO `cooks` (`cook_id`, `username`, `password`, `status`) VALUES
+(1, 'John', '$argon2id$v=19$m=19456,t=2,p=1$br4aTfrxjXLmi/GH4GojPg$/ag47Ol2GITSeIjc81kVAc4UHzRZ9dZ8uJIDMjTwpyE', 'enable'),
 (201, 'C001', '$argon2id$v=19$m=19456,t=2,p=1$JVRyC9txPdUj4c0rEGAqGg$p3ckdOCsW3SyP9I2mGQKiv0ILTwcYzjwiZUAYfipZas', 'enable'),
 (202, 'C002', '$argon2id$v=19$m=19456,t=2,p=1$F8NRVgQaM28CMEZfkrMd6A$DA/S6HLjexCufFo31RFM3rVVDybE28cqz7gUB/X1DJQ', 'enable'),
 (203, 'C003', '$argon2id$v=19$m=19456,t=2,p=1$D6tPLwbPh3KQYC+d0uA3kg$hTWzdxUEYZ42zUx7UakYc0xezJY4SSJG41aBGcNIFZE', 'enable'),
-(204, 'C004', '$argon2id$v=19$m=19456,t=2,p=1$SYaGL/MJryOTe5RT3vDR3g$4po91eF5Sh/3NNxCInjyzHoqvXLvpyWrslyc8tqn6gw', 'enable');
+(210, 'C008', '$argon2id$v=19$m=19456,t=2,p=1$DxnDQbF65sbblf3KJYefFw$7QUG12DxZ8UDUHONsfBj4QK6LgHlkBAt3WIc2LHY2GU', 'enable'),
+(211, 'C009', '$argon2id$v=19$m=19456,t=2,p=1$0CM2C+AtpPmAS6RqZ3US6g$2dlRUfwcdE4P7+rO2gX5G2ssNzA8CSOfDLYLxuYRO44', 'enable'),
+(212, 'C010', '$argon2id$v=19$m=19456,t=2,p=1$GAzVm1vp8EAKDNI/oceOWQ$YF9DTu1BcyPZBIzUiA5fnkg+xYfIKWE5zI7w2Zzast8', 'enable');
 
 -- --------------------------------------------------------
 
@@ -81,7 +86,7 @@ CREATE TABLE `customer` (
 --
 
 INSERT INTO `customer` (`customer_id`, `table_number`, `created_at`, `status`) VALUES
-(101, 1, '2026-04-03 13:03:20', 'paid'),
+(101, 1, '2026-04-06 23:19:42', 'paid'),
 (102, 2, '2026-03-31 23:02:25', 'paid'),
 (103, 3, '2026-04-03 12:43:59', 'paid'),
 (104, 4, '2026-03-31 17:09:22', 'paid'),
@@ -108,7 +113,7 @@ CREATE TABLE `menu` (
 --
 
 INSERT INTO `menu` (`menu_id`, `name`, `price`, `status`) VALUES
-(1001, 'Pad Thai', 80, 'enable'),
+(1001, 'Pad Thai', 80, 'disable'),
 (1002, 'Cheeseburger', 120, 'enable'),
 (1003, 'Greek Salad', 90, 'enable'),
 (1004, 'Caesar Salad', 95, 'enable'),
@@ -150,7 +155,11 @@ CREATE TABLE `order` (
 INSERT INTO `order` (`order_id`, `customer_id`, `created_at`) VALUES
 (46, 102, '2026-03-31 23:02:36'),
 (47, 103, '2026-04-03 12:44:05'),
-(48, 101, '2026-04-03 13:03:24');
+(48, 101, '2026-04-03 13:03:24'),
+(49, 101, '2026-04-06 21:31:48'),
+(50, 101, '2026-04-06 22:10:59'),
+(51, 101, '2026-04-06 23:18:24'),
+(52, 101, '2026-04-06 23:19:45');
 
 -- --------------------------------------------------------
 
@@ -164,19 +173,27 @@ CREATE TABLE `order_item` (
   `menu_id` int(10) UNSIGNED NOT NULL,
   `quantity` int(10) UNSIGNED NOT NULL,
   `status` enum('pending','cooking','serving') NOT NULL,
-  `updated_by` int(10) UNSIGNED NOT NULL
+  `updated_by` int(10) UNSIGNED NOT NULL,
+  `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `order_item`
 --
 
-INSERT INTO `order_item` (`order_item_id`, `order_id`, `menu_id`, `quantity`, `status`, `updated_by`) VALUES
-(60, 47, 1001, 1, 'serving', 201),
-(61, 47, 1002, 1, 'serving', 201),
-(62, 47, 1004, 1, 'serving', 201),
-(63, 48, 1001, 1, 'serving', 201),
-(64, 48, 1002, 1, 'serving', 201);
+INSERT INTO `order_item` (`order_item_id`, `order_id`, `menu_id`, `quantity`, `status`, `updated_by`, `updated_at`) VALUES
+(60, 47, 1001, 1, 'serving', 201, NULL),
+(61, 47, 1002, 1, 'serving', 201, NULL),
+(62, 47, 1004, 1, 'serving', 201, NULL),
+(63, 48, 1001, 1, 'serving', 201, NULL),
+(64, 48, 1002, 1, 'serving', 201, NULL),
+(65, 49, 1001, 1, 'serving', 201, '2026-04-06 21:32:06'),
+(66, 49, 1001, 1, 'serving', 201, '2026-04-06 21:32:08'),
+(67, 50, 1001, 1, 'serving', 208, '2026-04-06 22:11:09'),
+(68, 50, 1002, 1, 'serving', 208, '2026-04-06 22:11:10'),
+(69, 51, 1002, 1, 'serving', 208, '2026-04-06 23:18:49'),
+(70, 51, 1002, 1, 'serving', 208, '2026-04-06 23:18:51'),
+(71, 52, 1002, 1, 'serving', 208, '2026-04-06 23:20:04');
 
 -- --------------------------------------------------------
 
@@ -206,7 +223,11 @@ INSERT INTO `payment` (`payment_id`, `customer_id`, `total_price`, `paid_at`) VA
 (16, 102, 80, '2026-03-31 00:46:19'),
 (17, 104, 480, '2026-03-31 17:12:14'),
 (18, 103, 295, '2026-04-03 12:44:30'),
-(19, 101, 200, '2026-04-03 13:03:50');
+(19, 101, 200, '2026-04-03 13:03:50'),
+(20, 101, 160, '2026-04-06 21:32:13'),
+(21, 101, 200, '2026-04-06 22:15:05'),
+(22, 101, 240, '2026-04-06 23:19:06'),
+(23, 101, 120, '2026-04-06 23:20:26');
 
 -- --------------------------------------------------------
 
@@ -228,7 +249,12 @@ CREATE TABLE `review` (
 
 INSERT INTO `review` (`review_id`, `customer_id`, `comment`, `created_at`, `rating`) VALUES
 (13, 103, 'good', '2026-04-03 12:44:40', 5),
-(14, 101, '///', '2026-04-03 13:04:02', 3);
+(14, 101, '///', '2026-04-03 13:04:02', 3),
+(15, 101, 'dada', '2026-04-06 21:32:19', 5),
+(16, 101, 'ฟฟฟฟ', '2026-04-06 22:15:08', NULL),
+(17, 101, 'หหห', '2026-04-06 23:19:11', 5),
+(18, 101, 'ๅๅๅ', '2026-04-06 23:20:30', 5),
+(19, 103, 'Very good!', '2026-04-07 21:35:14', NULL);
 
 --
 -- Indexes for dumped tables
@@ -301,7 +327,7 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `cooks`
 --
 ALTER TABLE `cooks`
-  MODIFY `cook_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=205;
+  MODIFY `cook_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=213;
 
 --
 -- AUTO_INCREMENT for table `customer`
@@ -319,25 +345,25 @@ ALTER TABLE `menu`
 -- AUTO_INCREMENT for table `order`
 --
 ALTER TABLE `order`
-  MODIFY `order_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `order_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `order_item`
 --
 ALTER TABLE `order_item`
-  MODIFY `order_item_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `order_item_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
 
 --
 -- AUTO_INCREMENT for table `payment`
 --
 ALTER TABLE `payment`
-  MODIFY `payment_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `payment_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `review`
 --
 ALTER TABLE `review`
-  MODIFY `review_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `review_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- Constraints for dumped tables

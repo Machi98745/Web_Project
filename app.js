@@ -470,6 +470,23 @@ app.post("/cook/login", async function (req, res) {
   });
 });
 
+// cook info (lookup by id or username)
+app.get('/cook/info', function (req, res) {
+  const cookId = req.query.cookId;
+  if (!cookId) return res.status(400).json({ message: 'Missing cookId' });
+
+  const sql = 'SELECT cook_id, username FROM cooks WHERE cook_id = ? OR username = ? LIMIT 1';
+  con.query(sql, [cookId, cookId], function (err, results) {
+    if (err) {
+      console.error('cook info error', err);
+      return res.status(500).json({ message: 'DB error' });
+    }
+    if (!results || results.length === 0) return res.status(404).json({ message: 'Cook not found' });
+    const row = results[0];
+    res.json({ cookId: row.cook_id, name: row.username });
+  });
+});
+
 // cook orders
 app.get("/cook/orders", function (req, res) {
   const { status } = req.query;
@@ -521,16 +538,27 @@ app.patch("/cook/order-item/:id", function (req, res) {
       }
 
       function doUpdate() {
+        const expectedOld = status === 'cooking' ? 'pending' : (status === 'serving' ? 'cooking' : null);
+
+        if (!expectedOld) {
+          return res.status(400).json({ message: 'Invalid status transition' });
+        }
+
         const sql = `
                 UPDATE order_item 
                 SET status = ?, updated_by = ?, updated_at = NOW()
-                WHERE order_item_id = ?
+                WHERE order_item_id = ? AND status = ?
             `;
 
-        con.query(sql, [status, cookId, req.params.id], function (err) {
+        con.query(sql, [status, cookId, req.params.id, expectedOld], function (err, result) {
           if (err) {
             console.error(err);
             return res.status(500).json({ message: "Update failed" });
+          }
+
+          // If no rows affected, the item's status was already changed by someone else
+          if (!result || result.affectedRows === 0) {
+            return res.status(409).json({ message: "Order item already claimed or status changed" });
           }
 
           res.status(200).json({ message: "Updated successfully" });
@@ -545,18 +573,25 @@ app.patch("/cook/order-item/:id", function (req, res) {
             if (aErr) {
               console.error("Failed to add updated_at column", aErr);
               // still attempt update without timestamp
-              const sqlNoTs = `UPDATE order_item SET status = ?, updated_by = ? WHERE order_item_id = ?`;
-              return con.query(
-                sqlNoTs,
-                [status, cookId, req.params.id],
-                function (err2) {
-                  if (err2) {
-                    console.error(err2);
-                    return res.status(500).json({ message: "Update failed" });
-                  }
-                  res.status(200).json({ message: "Updated (no timestamp)" });
-                },
-              );
+                const expectedOld = status === 'cooking' ? 'pending' : (status === 'serving' ? 'cooking' : null);
+                if (!expectedOld) {
+                  return res.status(400).json({ message: 'Invalid status transition' });
+                }
+                const sqlNoTs = `UPDATE order_item SET status = ?, updated_by = ? WHERE order_item_id = ? AND status = ?`;
+                return con.query(
+                  sqlNoTs,
+                  [status, cookId, req.params.id, expectedOld],
+                  function (err2, result2) {
+                    if (err2) {
+                      console.error(err2);
+                      return res.status(500).json({ message: "Update failed" });
+                    }
+                    if (!result2 || result2.affectedRows === 0) {
+                      return res.status(409).json({ message: "Order item already claimed or status changed" });
+                    }
+                    res.status(200).json({ message: "Updated (no timestamp)" });
+                  },
+                );
             }
             doUpdate();
           },
