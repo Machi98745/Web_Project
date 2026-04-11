@@ -233,35 +233,22 @@ app.get("/admin/cooks", function (req, res) {
 app.post("/admin/cooks", function (req, res) {
   const { cook_id, name } = req.body;
 
-  if (!name && !cook_id)
-    return res.status(400).json({ message: "Missing cook name or id" });
+  if (!cook_id) return res.status(400).json({ message: 'cook_id is required' });
 
   const username = name || cook_id;
-  const plainPass = Math.random().toString(36).slice(2, 10);
-  const hash = argon2.hashSync(plainPass);
-  const status = "enable";
 
-  if (cook_id && Number.isInteger(Number(cook_id))) {
-    const sql =
-      "INSERT INTO cooks (cook_id, username, password, status) VALUES (?, ?, ?, ?)";
-    con.query(sql, [cook_id, username, hash, status], function (err, result) {
-      if (err) {
-        console.error("Insert cook error", err);
-        return res.status(500).json({ message: "Create cook failed" });
-      }
-      res.status(201).json({ message: "Cook created", password: plainPass });
-    });
-  } else {
-    const sql =
-      "INSERT INTO cooks (username, password, status) VALUES (?, ?, ?)";
-    con.query(sql, [username, hash, status], function (err, result) {
-      if (err) {
-        console.error("Insert cook error", err);
-        return res.status(500).json({ message: "Create cook failed" });
-      }
-      res.status(201).json({ message: "Cook created", password: plainPass });
-    });
-  }
+  // Create account in disabled state without password; cook will register and set password later
+  const sql = "INSERT INTO cooks (cook_id, username, password, status) VALUES (?, ?, NULL, 'disable')";
+  const sql2 = "INSERT INTO cooks (cook_id, username, password, status) VALUES (?, ?, ?, 'disable')";
+  con.query(sql2, [cook_id, username, ''], function (err, result) {
+    if (err) {
+      console.error('Insert cook error', err);
+      // duplicate primary key
+      if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ message: 'Cook ID already exists' });
+      return res.status(500).json({ message: 'Create cook failed' });
+    }
+    res.status(201).json({ message: 'Cook created', cookId: cook_id });
+  });
 });
 
 // admin cook delete
@@ -378,47 +365,38 @@ app.get("/admin/reviews", function (req, res) {
 app.post("/cook/register", function (req, res) {
   const { cookId, password } = req.body;
 
-  function insertWithUsername(username) {
-    const hash = argon2.hashSync(password);
-    const insertSql =
-      "INSERT INTO cooks (username, password, status) VALUES (?, ?, 'disable')";
-    con.query(insertSql, [username, hash], function (err, result) {
-      if (err) {
-        console.error("Insert cook error", err);
-        return res.status(500).send("Server error");
-      }
-      return res
-        .status(201)
-        .json({ message: "Account created", cookId: username });
-    });
+  if (!cookId || !password) {
+    return res.status(400).json({ message: 'cookId and password are required' });
   }
 
-  if (cookId && String(cookId).trim()) {
-    const checkSql = "SELECT cook_id FROM cooks WHERE username = ?";
-    con.query(checkSql, [cookId], function (err, results) {
-      if (err) return res.status(500).send("Server error");
-      if (results.length > 0)
-        return res.status(409).json({ message: "Cook ID already exists" });
-      insertWithUsername(String(cookId).trim());
-    });
-  } else {
-    // Generate next cook id in format C001, C002, ...
-    const maxSql =
-      "SELECT MAX(CAST(SUBSTRING(username,2) AS UNSIGNED)) AS maxnum FROM cooks WHERE username REGEXP '^C[0-9]+'";
-    con.query(maxSql, function (err, rows) {
-      if (err) {
-        console.error("Failed to get max cook id", err);
-        // fallback: insert with timestamp-based id
-        const gen = "C" + Date.now().toString().slice(-6);
-        return insertWithUsername(gen);
+  const sql = "SELECT cook_id, username, status FROM cooks WHERE username = ? OR cook_id = ? LIMIT 1";
+  con.query(sql, [cookId, cookId], function (err, results) {
+    if (err) {
+      console.error('cook/register select error', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (!results || results.length === 0) {
+      return res.status(404).json({ message: 'Cook ID not found. Ask admin to create your Cook ID.' });
+    }
+
+    const cook = results[0];
+
+    if (cook.status === 'enable') {
+      return res.status(409).json({ message: 'Cook ID already active. Cannot register.' });
+    }
+
+    // Update existing disabled account with chosen password and enable it
+    const hash = argon2.hashSync(password);
+    const updSql = "UPDATE cooks SET password = ?, status = 'enable' WHERE cook_id = ?";
+    con.query(updSql, [hash, cook.cook_id], function (uErr) {
+      if (uErr) {
+        console.error('cook/register update error', uErr);
+        return res.status(500).json({ message: 'Server error' });
       }
-      const maxnum =
-        rows && rows[0] && rows[0].maxnum ? Number(rows[0].maxnum) : 0;
-      const next = maxnum + 1;
-      const username = "C" + String(next).padStart(3, "0");
-      insertWithUsername(username);
+      return res.status(200).json({ message: 'Registered', cookId: cook.cook_id });
     });
-  }
+  });
 });
 
 // ------------------------------------ end admin routes ------------------------------------

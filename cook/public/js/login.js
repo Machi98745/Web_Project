@@ -56,6 +56,7 @@ async function doLogin() {
 
 // Register
 async function doRegister() {
+    const cookId = document.getElementById('regCookId').value.trim();
     const pass   = document.getElementById('regPass').value;
 
     const err    = document.getElementById('regErr');
@@ -65,30 +66,29 @@ async function doRegister() {
     err.classList.add('hidden');
     ok.classList.add('hidden');
 
-    if (!cookId)         { showRegError(errMsg, err, 'Please enter a Cook ID'); return; }
+    if (!cookId)         { showRegError(errMsg, err, 'Please enter the Cook ID provided by admin'); return; }
     if (pass.length < 4) { showRegError(errMsg, err, 'Password must be at least 4 characters'); return; }
 
     try {
         const res = await fetch('/cook/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pass })
+            body: JSON.stringify({ cookId: cookId, password: pass })
         });
 
-        if (res.status === 201) {
-            const data = await res.json().catch(() => ({}));
+        if (res.status === 200) {
             ok.classList.remove('hidden');
             setTimeout(() => {
                 document.getElementById('regPass').value = '';
+                document.getElementById('regCookId').value = '';
                 ok.classList.add('hidden');
                 switchCard('login');
-                if (data.cookId) {
-                    alert('Registered. Your Cook ID: ' + data.cookId + '\nWait for admin to enable your account.');
-                    document.getElementById('cookId').value = data.cookId;
-                }
-            }, 1200);
+                alert('Registered. You can now login using your Cook ID and password.');
+            }, 900);
+        } else if (res.status === 404) {
+            showRegError(errMsg, err, 'Cook ID not found. Please ask admin to create your Cook ID.');
         } else if (res.status === 409) {
-            showRegError(errMsg, err, 'Cook ID already exists');
+            showRegError(errMsg, err, 'Cook ID already active. Cannot register.');
         } else {
             const data = await res.json().catch(() => ({}));
             showRegError(errMsg, err, data.message || 'Registration failed. Please try again.');

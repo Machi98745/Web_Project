@@ -259,11 +259,7 @@
 
             const data = await res.json().catch(() => ({}));
             if (res.ok) {
-                if (data.password) {
-                    alert('Cook created. Temporary password: ' + data.password);
-                } else {
-                    alert('Cook created');
-                }
+                alert('Cook created. Provide the Cook ID to the cook and ask them to register and set their password.');
             } else {
                 alert('Failed to create cook: ' + (data.message || res.statusText));
             }
