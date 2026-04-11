@@ -42,7 +42,15 @@ async function processPayment() {
     const orderIds = JSON.parse(sessionStorage.getItem('allOrderIds')) || [];
     const customerId = sessionStorage.getItem('customerId');
 
-    if (orderIds.length === 0) return alert("No orders to pay.");
+    if (orderIds.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No Orders',
+            text: 'No orders to pay.',
+            confirmButtonColor: '#3085d6'
+        });
+        return;
+    }
 
     try {
         const res = await fetch('/customer/complete-payment', {
@@ -57,12 +65,23 @@ async function processPayment() {
 
         if (res.ok) {
             localStorage.setItem('last_paid_amount', grandTotal);
-            alert("Payment Successful! Thank you.");
-            window.location.href = 'review.html';
+            Swal.fire({
+                icon: 'success',
+                title: 'Payment Successful',
+                text: 'Thank you!',
+                confirmButtonColor: '#3085d6'
+            }).then(() => {
+                window.location.href = 'review.html';
+            });
         }
     } catch (e) {
         console.error("Payment Error:", e);
-        alert("Payment failed. Please contact staff.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Payment Failed',
+            text: 'Please contact staff.',
+            confirmButtonColor: '#3085d6'
+        });
     }
 }
 
