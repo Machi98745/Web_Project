@@ -66,8 +66,13 @@ function filterCategory(cat) {
                         (cat === 'Main Dish' && btn.innerText === 'Main Dish') ||
                         (cat === 'Drink' && btn.innerText === 'Drinks');
         
-        btn.classList.toggle('btn-warning', isMatch);
-        btn.classList.toggle('btn-outline', !isMatch);
+        if (isMatch) {
+            btn.classList.remove('bg-white', 'text-slate-500', 'border-slate-200');
+            btn.classList.add('bg-green-600', 'text-white');
+        } else {
+            btn.classList.remove('bg-green-600', 'text-white');
+            btn.classList.add('bg-white', 'text-slate-500', 'border-slate-200');
+        }
     });
     renderMenu(cat, document.getElementById('searchInput').value);
 }

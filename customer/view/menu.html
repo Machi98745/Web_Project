@@ -9,10 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 
-<body class="bg-slate-50 min-h-screen pb-24"> <div class="p-4">
+<body class="bg-slate-50 min-h-screen pb-24">
+    <div class="p-4">
         <div class="mb-6">
             <div class="flex items-center gap-2 mb-3">
-                <span class="bg-amber-400 text-black text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">KITCHEN STATION</span>
+                <span
+                    class="bg-amber-400 text-black text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">KITCHEN
+                    STATION</span>
                 <span class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">Menu</span>
             </div>
 
@@ -25,17 +28,19 @@
 
         <div class="flex overflow-x-auto gap-2 mb-6 no-scrollbar">
             <button onclick="filterCategory('all')"
-                class="cat-btn btn btn-sm bg-amber-400 border-none text-black rounded-full px-6 font-bold">All</button>
-            <button onclick="filterCategory('Main Dish')" 
-                class="cat-btn btn btn-sm bg-white border-slate-200 text-slate-500 rounded-full px-6 font-bold">Main Dish</button>
+                class="cat-btn btn btn-sm bg-green-600 border-none text-white rounded-full px-6 font-bold">All</button>
+            <button onclick="filterCategory('Main Dish')"
+                class="cat-btn btn btn-sm bg-white border-slate-200 text-slate-500 rounded-full px-6 font-bold">Main
+                Dish</button>
             <button onclick="filterCategory('Drink')"
                 class="cat-btn btn btn-sm bg-white border-slate-200 text-slate-500 rounded-full px-6 font-bold">Drinks</button>
         </div>
 
-        <div id="menu-grid" class="grid grid-cols-2 gap-4">
-            </div>
+        <div id="menu-grid" class="grid grid-cols-3 gap-4">
+        </div>
 
-        <footer class="fixed bottom-0 left-0 w-full p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 flex justify-between items-center z-50">
+        <footer
+            class="fixed bottom-0 left-0 w-full p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 flex justify-between items-center z-50">
             <div class="flex flex-col">
                 <span class="text-[10px] text-slate-400 uppercase font-black">Total Amount</span>
                 <span class="font-black text-amber-500 text-2xl" id="total-price">0 THB</span>
@@ -47,22 +52,26 @@
         </footer>
     </div>
     <div class="fixed top-4 right-4 z-[60]">
-    <button onclick="location.href='status.html'" 
-        class="btn btn-circle bg-white border-slate-200 shadow-lg hover:bg-amber-400 group transition-all duration-300 w-14 h-14">
-        <div class="flex flex-col items-center gap-0">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
-                class="w-6 h-6 text-amber-500 group-hover:text-black">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-            <span class="text-[8px] font-black text-slate-400 group-hover:text-black uppercase tracking-tighter">Status</span>
-        </div>
-        
-        <span class="absolute top-0 right-0 flex h-3 w-3">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
-        </span>
-    </button>
-</div>
+        <button onclick="location.href='status.html'"
+            class="btn btn-circle bg-white border-slate-200 shadow-lg hover:bg-amber-400 group transition-all duration-300 w-14 h-14">
+            <div class="flex flex-col items-center gap-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="w-6 h-6 text-amber-500 group-hover:text-black">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <span
+                    class="text-[8px] font-black text-slate-400 group-hover:text-black uppercase tracking-tighter">Status</span>
+            </div>
+
+            <span class="absolute top-0 right-0 flex h-3 w-3">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+            </span>
+        </button>
+    </div>
     <script src="/customer/public/js/menu.js"></script>
 </body>
+
 </html>

@@ -51,7 +51,6 @@ if (document.getElementById('order-btn')) {
     document.getElementById('order-btn').onclick = async () => {
         if (sessionStorage.getItem('has_paid') === 'true') {
             Swal.fire({
-                icon: 'warning',
                 title: 'Session Expired',
                 text: 'You have already paid for this session. Please log in again for a new order.',
                 confirmButtonColor: '#3085d6'
@@ -65,7 +64,6 @@ if (document.getElementById('order-btn')) {
         
         if (!customerId) {
             Swal.fire({
-                icon: 'info',
                 title: 'Not Logged In',
                 text: 'Please log in again.',
                 confirmButtonColor: '#3085d6'
@@ -75,35 +73,52 @@ if (document.getElementById('order-btn')) {
             return;
         }
 
-        try {
-            const res = await fetch('/customer/place-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    customerId: customerId,
-                    items: cart
-                })
-            });
+        Swal.fire({
+            title: 'Confirm purchase',
+            text: 'Do you want to place this order?',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#dc2626'
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
 
-            if (res.ok) {
-            const data = await res.json();
-            let orderHistory = JSON.parse(sessionStorage.getItem('allOrderIds')) || [];
-            orderHistory.push(data.orderId);
-            sessionStorage.setItem('allOrderIds', JSON.stringify(orderHistory));
-            sessionStorage.removeItem('kitchen_cart'); 
-            location.href = 'status.html';
-            }
-            else {
+            try {
+                const res = await fetch('/customer/place-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customerId: customerId,
+                        items: cart
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    let orderHistory = JSON.parse(sessionStorage.getItem('allOrderIds')) || [];
+                    orderHistory.push(data.orderId);
+                    sessionStorage.setItem('allOrderIds', JSON.stringify(orderHistory));
+                    sessionStorage.removeItem('kitchen_cart'); 
+                    location.href = 'status.html';
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Order Failed',
+                        text: 'Failed to place order. Check server console.',
+                        confirmButtonColor: '#3085d6'
+                    });
+                }
+            } catch (e) {
+                console.error("Order error:", e);
                 Swal.fire({
                     icon: 'error',
                     title: 'Order Failed',
-                    text: 'Failed to place order. Check server console.',
+                    text: 'An unexpected error occurred.',
                     confirmButtonColor: '#3085d6'
                 });
             }
-        } catch (e) {
-            console.error("Order error:", e);
-        }
+        });
     };
 }
 

@@ -50,18 +50,19 @@ function isDrink(itemName) {
 let isPollingPaused = false;
 let isUpdating = false;
 
-
+let currentPage = 1;
+const ITEMS_PER_PAGE = 15;
 let itemCards = [];
 
-async function loadOrders(status = 'pending') {
+async function loadOrders(status = 'preparing') {
     try {
         let data = [];
 
-        if (status === 'inprogress') {
-            // fetch both cooking and serving
+        if (status === 'preparing') {
+            // fetch both pending and cooking
             const [r1, r2] = await Promise.all([
-                fetch('/cook/orders?status=cooking'),
-                fetch('/cook/orders?status=serving')
+                fetch('/cook/orders?status=pending'),
+                fetch('/cook/orders?status=cooking')
             ]);
             const d1 = r1.ok ? await r1.json() : [];
             const d2 = r2.ok ? await r2.json() : [];
@@ -90,7 +91,7 @@ async function loadOrders(status = 'pending') {
 }
 
 
-// Confirm modal
+// Confirm with SweetAlert2
 let pendingAdvanceIndex = null;
 
 function askAdvance(index) {
@@ -99,20 +100,31 @@ function askAdvance(index) {
 
     const card = itemCards[index];
     const nextLabel = card.status === 'pending' ? 'Cooking' : 'Served';
+    const itemDisplay = card.type === 'drink' ? '🥤 ' + card.label : card.label;
 
-    document.getElementById('modal-item').textContent = card.type === 'drink' ? '🥤 ' + card.label : card.label;
-    document.getElementById('modal-order').textContent = `${card.orderId} · ${card.table}`;
-    document.getElementById('modal-next').textContent = nextLabel;
-    document.getElementById('confirmModal').classList.remove('hidden');
+    Swal.fire({
+        title: itemDisplay,
+        html: `<p style="font-size: 12px; color: #999; margin-bottom: 10px;">${card.orderId} · ${card.table}</p>\n               <p style="font-size: 14px; color: #666;">Mark as <strong>${nextLabel}</strong>?</p>`,
+        showCancelButton: true,
+        confirmButtonColor: '#15803d',
+        cancelButtonColor: '#d1d5db',
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        allowOutsideClick: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            confirmAdvance();
+        } else {
+            pendingAdvanceIndex = null;
+            isPollingPaused = false;
+        }
+    });
 }
 
 async function confirmAdvance() {
     if (pendingAdvanceIndex === null) return;
     if (isUpdating) return;
     isUpdating = true;
-
-    const confirmBtn = document.getElementById('confirmBtn');
-    if (confirmBtn) confirmBtn.disabled = true;
 
     const card = itemCards[pendingAdvanceIndex];
     pendingAdvanceIndex = null;
@@ -139,7 +151,6 @@ async function confirmAdvance() {
 
         if (res.status === 409) {
             Swal.fire({ icon: 'info', title: 'Conflict', text: 'The order has been taken by someone else — refresh the list.', confirmButtonColor: '#3085d6' });
-            closeModal();
             loadOrders(currentTab);
             return;
         }
@@ -149,22 +160,35 @@ async function confirmAdvance() {
             return;
         }
 
-        closeModal();
         loadOrders(currentTab);
 
     } catch (err) {
         console.error(err);
     } finally {
         isUpdating = false;
-        if (confirmBtn) confirmBtn.disabled = false;
         isPollingPaused = false;
     }
 }
 
-function closeModal() {
-    document.getElementById('confirmModal').classList.add('hidden');
-    pendingAdvanceIndex = null;
-    isPollingPaused = false;
+function changePage(direction) {
+    const visible = getVisibleOrders();
+    const totalPages = Math.max(1, Math.ceil(visible.length / ITEMS_PER_PAGE));
+    currentPage = Math.min(totalPages, Math.max(1, currentPage + direction));
+    renderCards();
+}
+
+function updatePageDisplay(totalPages) {
+    const pageDisplay = document.getElementById('pageDisplay');
+    if (pageDisplay) {
+        pageDisplay.textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+}
+
+function getVisibleOrders() {
+    if (currentTab === 'preparing') {
+        return itemCards.filter(card => card.status === 'pending' || card.status === 'cooking');
+    }
+    return itemCards.filter(card => card.status === currentTab);
 }
 
 
@@ -210,30 +234,37 @@ function buildCardHTML(card, index) {
 // Render
 function renderCards() {
     const list = document.getElementById('orderList');
-    let visible;
-    if (currentTab === 'inprogress') {
-        visible = itemCards.filter(card => card.status === 'cooking' || card.status === 'serving');
-    } else {
-        visible = itemCards.filter(card => card.status === currentTab);
+    const visible = getVisibleOrders();
+    const totalPages = Math.max(1, Math.ceil(visible.length / ITEMS_PER_PAGE));
+
+    if (currentPage > totalPages) {
+        currentPage = totalPages;
     }
 
     if (visible.length === 0) {
-        list.innerHTML = `<p class="text-center text-gray-400 text-sm mt-10">ไม่มีรายการ</p>`;
+        list.innerHTML = `<div class="col-span-3 flex justify-center items-center min-h-[200px] text-center text-gray-400 text-sm">No orders</div>`;
+        updatePageDisplay(totalPages);
         return;
     }
 
-    list.innerHTML = visible.map(card => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const pageItems = visible.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    list.innerHTML = pageItems.map(card => {
         const index = itemCards.indexOf(card);
         return buildCardHTML(card, index);
     }).join('');
+
+    updatePageDisplay(totalPages);
 }
 
 
 // Tabs
-let currentTab = 'pending';
+let currentTab = 'preparing';
 
 function setTab(tab) {
     currentTab = tab;
+    currentPage = 1;
 
     document.querySelectorAll('.tab').forEach(t => {
         t.classList.remove('bg-green-700', 'text-white');
@@ -251,7 +282,7 @@ function setTab(tab) {
 
 
 // Init
-setTab('pending');
+setTab('preparing');
 
 // Poll every 3s to keep list fresh and reduce race window
 setInterval(() => {
