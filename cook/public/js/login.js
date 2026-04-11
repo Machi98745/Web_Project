@@ -49,7 +49,7 @@ async function doLogin() {
         }
     } catch (e) {
         console.error("Connection error:", e);
-        alert("Cannot connect to server");
+        Swal.fire({ icon: 'error', title: 'Connection error', text: 'Cannot connect to server', confirmButtonColor: '#3085d6' });
     }
 }
 
@@ -84,7 +84,7 @@ async function doRegister() {
                 document.getElementById('regCookId').value = '';
                 ok.classList.add('hidden');
                 switchCard('login');
-                alert('Registered. You can now login using your Cook ID and password.');
+                Swal.fire({ icon: 'success', title: 'Registered', text: 'You can now login using your Cook ID and password.', confirmButtonColor: '#3085d6' });
             }, 900);
         } else if (res.status === 404) {
             showRegError(errMsg, err, 'Cook ID not found. Please ask admin to create your Cook ID.');

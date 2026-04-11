@@ -259,13 +259,13 @@
 
             const data = await res.json().catch(() => ({}));
             if (res.ok) {
-                alert('Cook created. Provide the Cook ID to the cook and ask them to register and set their password.');
+                Swal.fire({ icon: 'success', title: 'Cook created', text: 'Provide the Cook ID to the cook and ask them to register and set their password.', confirmButtonColor: '#3085d6' });
             } else {
-                alert('Failed to create cook: ' + (data.message || res.statusText));
+                Swal.fire({ icon: 'error', title: 'Create failed', text: 'Failed to create cook: ' + (data.message || res.statusText), confirmButtonColor: '#3085d6' });
             }
         } catch (err) {
             console.error('addCook error', err);
-            alert('Cannot contact server');
+            Swal.fire({ icon: 'error', title: 'Connection error', text: 'Cannot contact server', confirmButtonColor: '#3085d6' });
         }
 
         loadCooks();

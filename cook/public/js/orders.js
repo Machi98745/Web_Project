@@ -123,8 +123,8 @@ async function confirmAdvance() {
         const cookId = sessionStorage.getItem('cookId');
 
         if (!cookId) {
-            alert("Please login again");
-            window.location.href = '/cook/view/login.html';
+            Swal.fire({ icon: 'warning', title: 'Please login', text: 'Please login again', confirmButtonColor: '#3085d6' })
+                .then(() => { window.location.href = '/cook/view/login.html'; });
             return;
         }
 
@@ -138,14 +138,14 @@ async function confirmAdvance() {
         });
 
         if (res.status === 409) {
-            alert('The order has been taken by someone else — refresh the list.');
+            Swal.fire({ icon: 'info', title: 'Conflict', text: 'The order has been taken by someone else — refresh the list.', confirmButtonColor: '#3085d6' });
             closeModal();
             loadOrders(currentTab);
             return;
         }
 
         if (!res.ok) {
-            alert("Update failed");
+            Swal.fire({ icon: 'error', title: 'Update failed', text: 'Unable to update order status.', confirmButtonColor: '#3085d6' });
             return;
         }
 
