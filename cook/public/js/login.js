@@ -40,9 +40,12 @@ async function doLogin() {
             sessionStorage.setItem('cookName', data.name); 
             window.location.href = '/cook/view/orders.html'; 
         } else {
-            const errorData = await res.json();
-            errBanner.classList.remove('hidden');
-            console.error(errorData.message);
+              const errorData = await res.json().catch(() => ({}));
+              errBanner.classList.remove('hidden');
+              const span = errBanner.querySelector('span');
+              const note = errorData.note ? (' — ' + errorData.note) : '';
+              span.textContent = (errorData.message || 'Login failed') + note;
+              console.error(errorData.message, errorData.note);
         }
     } catch (e) {
         console.error("Connection error:", e);
@@ -53,42 +56,40 @@ async function doLogin() {
 
 // Register
 async function doRegister() {
-    const cookId = document.getElementById('regId').value.trim();
-    const name   = document.getElementById('regName').value.trim();
+    const cookId = document.getElementById('regCookId').value.trim();
     const pass   = document.getElementById('regPass').value;
-    const pass2  = document.getElementById('regPass2').value;
- 
+
     const err    = document.getElementById('regErr');
     const errMsg = document.getElementById('regErrMsg');
     const ok     = document.getElementById('regOk');
- 
+
     err.classList.add('hidden');
     ok.classList.add('hidden');
- 
-    if (!cookId)         { showRegError(errMsg, err, 'Please enter a Cook ID'); return; }
-    if (!name)           { showRegError(errMsg, err, 'Please enter a display name'); return; }
+
+    if (!cookId)         { showRegError(errMsg, err, 'Please enter the Cook ID provided by admin'); return; }
     if (pass.length < 4) { showRegError(errMsg, err, 'Password must be at least 4 characters'); return; }
-    if (pass !== pass2)  { showRegError(errMsg, err, 'Passwords do not match'); return; }
- 
+
     try {
         const res = await fetch('/cook/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cookId, name, password: pass })  // ✅ แก้จาก username → cookId
+            body: JSON.stringify({ cookId: cookId, password: pass })
         });
- 
-        if (res.status === 201) {
+
+        if (res.status === 200) {
+            // Registration successful - return to login (no auto-login)
             ok.classList.remove('hidden');
             setTimeout(() => {
-                ['regId', 'regName', 'regPass', 'regPass2'].forEach(id => {
-                    document.getElementById(id).value = '';
-                });
+                document.getElementById('regPass').value = '';
+                document.getElementById('regCookId').value = '';
                 ok.classList.add('hidden');
                 switchCard('login');
-                document.getElementById('cookId').value = cookId;
-            }, 1500);
+                alert('Registered. You can now login using your Cook ID and password.');
+            }, 900);
+        } else if (res.status === 404) {
+            showRegError(errMsg, err, 'Cook ID not found. Please ask admin to create your Cook ID.');
         } else if (res.status === 409) {
-            showRegError(errMsg, err, 'Cook ID already exists');
+            showRegError(errMsg, err, 'Cook ID already active. Cannot register.');
         } else {
             const data = await res.json().catch(() => ({}));
             showRegError(errMsg, err, data.message || 'Registration failed. Please try again.');

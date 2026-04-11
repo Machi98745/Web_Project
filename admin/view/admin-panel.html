@@ -69,22 +69,22 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="lbl">Customers</div>
-                        <div class="val">1,284</div>
+                        <div class="val" id="customers-val">-</div>
                         <div class="sub">Unique orders</div>
                     </div>
                     <div class="stat-card accent-card">
                         <div class="lbl">Total payment</div>
-                        <div class="val">฿248,600</div>
+                        <div class="val" id="total-payment-val">฿-</div>
                         <div class="sub">All time</div>
                     </div>
                     <div class="stat-card">
                         <div class="lbl">Average rating</div>
-                        <div class="val" style="color:var(--accent);">4.3 ★</div>
+                        <div class="val" id="avg-rating-val" style="color:var(--accent);">- ★</div>
                         <div class="sub">From 312 reviews</div>
                     </div>
                     <div class="stat-card">
                         <div class="lbl">Active cooks</div>
-                        <div class="val">6</div>
+                        <div class="val" id="active-cooks-val">-</div>
                         <div class="sub">Of 8 registered</div>
                     </div>
                 </div>
@@ -110,7 +110,6 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
-                                <th>Added</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -237,8 +236,8 @@
         <div class="modal">
             <h3>Add cook</h3>
             <div class="field"><label>Cook name</label><input type="text" id="new-cook-name"
-                    placeholder="e.g. Somchai K."></div>
-            <div class="field"><label>Cook ID</label><input type="text" id="new-cook-id" placeholder="e.g. COOK-007">
+                    placeholder="e.g. C001"></div>
+            <div class="field"><label>Cook ID</label><input type="text" id="new-cook-id" placeholder="e.g. 201">
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal('cook')">Cancel</button>

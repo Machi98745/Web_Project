@@ -4,6 +4,7 @@
     let orders = [];
     let payments = [];
     let reviews = [];
+    let topMenu = [];
 
     async function loadCooks() {
         const res = await fetch('/admin/cooks');
@@ -15,6 +16,8 @@
         }
         const data = await res.json();
         cooks = Array.isArray(data) ? data : [];
+        // update active cooks stat
+        document.getElementById('active-cooks-val').innerText = cooks.filter(c => c.status === 'enable').length || 0;
         renderCooks();
     }
 
@@ -39,6 +42,28 @@
         renderPayments();
     }
 
+    async function loadDashboard() {
+        try {
+            const res = await fetch('/admin/dashboard');
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+
+            // populate stat cards
+            document.getElementById('customers-val').innerText = data.total_customers || 0;
+            document.getElementById('total-payment-val').innerText = '฿' + (data.total_payment || 0);
+            document.getElementById('avg-rating-val').innerText = (data.total_reviews || 0) + ' reviews';
+            // active cooks is derived from cooks list; set placeholder until cooks load
+            document.getElementById('active-cooks-val').innerText = '-';
+
+            // top menu: transform into structure used by renderDash
+            topMenu = (data.top_menu || []).map(t => ({ name: t.name, count: t.count }));
+            // fallback: if backend returned total_reviews only, keep topMenu empty
+            if (topMenu.length) renderDash();
+        } catch (err) {
+            console.error('loadDashboard error', err);
+        }
+    }
+
     async function loadReviews() {
         const res = await fetch('/admin/reviews');
         const data = await res.json();
@@ -52,6 +77,7 @@
         loadOrders();
         loadPayments();
         loadReviews();
+        loadDashboard();
     }
     // ── LOGIN ──
 
@@ -61,6 +87,8 @@
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('password').value = '';
         document.getElementById('login-error').style.display = 'none';
+        // clear persisted login state
+        try { localStorage.removeItem('adminLoggedIn'); } catch (e) { /* ignore */ }
     }
 
     // ── NAVIGATION ──
@@ -92,17 +120,31 @@
             <tr>
             <td>${c.cook_id}</td>
             <td>${c.name}</td>
-            <td>-</td>
             <td>
                 <span class="badge ${c.status === 'enable' ? 'badge-on' : 'badge-off'}">
                     ${c.status}
                 </span>
             </td>
             <td>
-                <button onclick="deleteCook(${c.cook_id})">✕</button>
+                <label class="toggle"><input type="checkbox" ${c.status === 'enable' ? 'checked' : ''} onchange="toggleCook(${c.cook_id}, this.checked)"><span class="slider"></span></label>
+                <button style="margin-left:8px;" onclick="deleteCook(${c.cook_id})">✕</button>
             </td>
             </tr>
         `).join('');
+    }
+
+    async function toggleCook(cookId, enabled) {
+        try {
+            await fetch(`/admin/cook/${cookId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: enabled ? 'enable' : 'disable' })
+            });
+            loadCooks();
+        } catch (err) {
+            console.error('toggleCook error', err);
+            loadCooks();
+        }
     }
 
     async function deleteCook(cookId) {
@@ -208,11 +250,23 @@
 
         if (!name || !cook_id) return;
 
-        await fetch('/admin/cooks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cook_id, name })
-        });
+        try {
+            const res = await fetch('/admin/cooks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cook_id, name })
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert('Cook created. Provide the Cook ID to the cook and ask them to register and set their password.');
+            } else {
+                alert('Failed to create cook: ' + (data.message || res.statusText));
+            }
+        } catch (err) {
+            console.error('addCook error', err);
+            alert('Cannot contact server');
+        }
 
         loadCooks();
         closeModal('cook');
@@ -294,6 +348,7 @@
             const data = await response.json();
 
             if (response.ok) {
+                try { localStorage.setItem('adminLoggedIn', '1'); } catch (e) { /* ignore */ }
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('app').style.display = 'block';
                 renderAll();
@@ -307,3 +362,22 @@
             errorMsg.style.display = 'block';
         }
     }
+
+    // Initialize auth state on page load so refresh doesn't force login
+    (function initAuth() {
+        try {
+            const logged = localStorage.getItem('adminLoggedIn') === '1';
+            if (logged) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                renderAll();
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app').style.display = 'none';
+            }
+        } catch (e) {
+            // if localStorage is unavailable, default to login screen
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('app').style.display = 'none';
+        }
+    })();

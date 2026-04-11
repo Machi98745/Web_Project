@@ -7,6 +7,7 @@
     <title>Review - Kitchen Station</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 text-center">
@@ -29,6 +30,19 @@
             <textarea id="comment"
                 class="textarea bg-slate-50 border-slate-200 focus:border-amber-400 focus:outline-none h-32 placeholder:text-slate-300 text-slate-700 rounded-2xl p-4 transition-all"
                 placeholder="Tell the chef what you liked..."></textarea>
+        </div>
+
+        <div class="mb-6">
+            <label class="label">
+                <span class="label-text text-slate-400 uppercase text-[10px] font-black tracking-[0.2em]">Rate your experience</span>
+            </label>
+            <div id="star-row" class="flex justify-center gap-2 text-2xl text-yellow-400 cursor-pointer">
+                <span data-value="1">☆</span>
+                <span data-value="2">☆</span>
+                <span data-value="3">☆</span>
+                <span data-value="4">☆</span>
+                <span data-value="5">☆</span>
+            </div>
         </div>
 
         <button onclick="submitReview()" 

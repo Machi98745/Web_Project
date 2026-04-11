@@ -50,16 +50,28 @@ function removeItem(index) {
 if (document.getElementById('order-btn')) {
     document.getElementById('order-btn').onclick = async () => {
         if (sessionStorage.getItem('has_paid') === 'true') {
-            alert("You have already paid for this session. Please log in again for a new order.");
-            window.location.href = '/customer/view/login.html';
+            Swal.fire({
+                icon: 'warning',
+                title: 'Session Expired',
+                text: 'You have already paid for this session. Please log in again for a new order.',
+                confirmButtonColor: '#3085d6'
+            }).then(() => {
+                window.location.href = '/customer/view/login.html';
+            });
             return;
         }
 
         const customerId = sessionStorage.getItem('customerId');
         
         if (!customerId) {
-            alert("Please log in again.");
-            window.location.href = '/customer/view/login.html';
+            Swal.fire({
+                icon: 'info',
+                title: 'Not Logged In',
+                text: 'Please log in again.',
+                confirmButtonColor: '#3085d6'
+            }).then(() => {
+                window.location.href = '/customer/view/login.html';
+            });
             return;
         }
 
@@ -82,7 +94,12 @@ if (document.getElementById('order-btn')) {
             location.href = 'status.html';
             }
             else {
-                alert("Failed to place order. Check server console.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Order Failed',
+                    text: 'Failed to place order. Check server console.',
+                    confirmButtonColor: '#3085d6'
+                });
             }
         } catch (e) {
             console.error("Order error:", e);
