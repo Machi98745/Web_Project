@@ -5,8 +5,14 @@ async function submitReview() {
     const rating = window.__selectedRating || null;
 
     if (!comment.trim()) {
-        alert("Please enter a comment before submitting.");
-        commentInput.focus();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Comment Required',
+            text: 'Please enter a comment before submitting.',
+            confirmButtonColor: '#3085d6'
+        }).then(() => {
+            commentInput.focus();
+        });
         return;
     }
 
@@ -31,15 +37,31 @@ async function submitReview() {
             };
             localStorage.setItem('last_order_history', JSON.stringify(historyEntry));
             localStorage.setItem('has_paid', 'true');
-            alert("Review submitted! Thank you for your feedback.");
-            window.location.href = 'history.html'; 
+            Swal.fire({
+                icon: 'success',
+                title: 'Review Submitted',
+                text: 'Thank you for your feedback!',
+                confirmButtonColor: '#3085d6'
+            }).then(() => {
+                window.location.href = 'history.html';
+            }); 
             
         } else {
-            alert("Failed to save review. Please try again.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Save Failed',
+                text: 'Failed to save review. Please try again.',
+                confirmButtonColor: '#3085d6'
+            });
         }
     } catch (e) {
         console.error("Submission error:", e);
-        alert("Connection error. Please try again later.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Connection Error',
+            text: 'Please try again later.',
+            confirmButtonColor: '#3085d6'
+        });
     }
 }
 
