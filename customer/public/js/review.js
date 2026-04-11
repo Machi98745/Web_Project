@@ -4,6 +4,19 @@ async function submitReview() {
     const customerId = sessionStorage.getItem('customerId');
     const rating = window.__selectedRating || null;
 
+    if (rating === null) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Rating Required',
+            text: 'Please select a star rating before submitting.',
+            confirmButtonColor: '#3085d6'
+        }).then(() => {
+            const row = document.getElementById('star-row');
+            if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        return;
+    }
+
     if (!comment.trim()) {
         Swal.fire({
             icon: 'warning',

@@ -77,6 +77,7 @@ async function doRegister() {
         });
 
         if (res.status === 200) {
+            // Registration successful - return to login (no auto-login)
             ok.classList.remove('hidden');
             setTimeout(() => {
                 document.getElementById('regPass').value = '';

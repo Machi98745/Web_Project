@@ -55,8 +55,21 @@ let itemCards = [];
 
 async function loadOrders(status = 'pending') {
     try {
-        const res = await fetch(`/cook/orders?status=${status}`);
-        const data = await res.json();
+        let data = [];
+
+        if (status === 'inprogress') {
+            // fetch both cooking and serving
+            const [r1, r2] = await Promise.all([
+                fetch('/cook/orders?status=cooking'),
+                fetch('/cook/orders?status=serving')
+            ]);
+            const d1 = r1.ok ? await r1.json() : [];
+            const d2 = r2.ok ? await r2.json() : [];
+            data = (d1 || []).concat(d2 || []);
+        } else {
+            const res = await fetch(`/cook/orders?status=${status}`);
+            data = await res.json();
+        }
 
         itemCards = data.map(item => ({
             order_item_id: item.order_item_id,
@@ -197,7 +210,12 @@ function buildCardHTML(card, index) {
 // Render
 function renderCards() {
     const list = document.getElementById('orderList');
-    const visible = itemCards.filter(card => card.status === currentTab);
+    let visible;
+    if (currentTab === 'inprogress') {
+        visible = itemCards.filter(card => card.status === 'cooking' || card.status === 'serving');
+    } else {
+        visible = itemCards.filter(card => card.status === currentTab);
+    }
 
     if (visible.length === 0) {
         list.innerHTML = `<p class="text-center text-gray-400 text-sm mt-10">ไม่มีรายการ</p>`;
