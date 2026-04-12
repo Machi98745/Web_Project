@@ -52,16 +52,38 @@ async function checkAllOrdersStatus() {
             billBtn.disabled = false;
             billBtn.className = "btn btn-lg w-full bg-amber-400 hover:bg-amber-500 border-none text-black font-black text-lg rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95";
             billBtn.innerText = "Proceed to Payment ➔";
-            billBtn.onclick = () => { window.location.href = 'payment.html'; };
+            billBtn.onclick = showPaymentDialog;
         } else {
             billBtn.disabled = true;
             billBtn.className = "btn btn-lg w-full bg-slate-100 border-none text-slate-300 font-bold rounded-2xl cursor-not-allowed";
             billBtn.innerText = "Kitchen is preparing...";
+            billBtn.onclick = null;
         }
 
     } catch (e) {
         console.error("Polling error:", e);
     }
+}
+
+function showPaymentDialog() {
+    Swal.fire({
+        title: 'Ready to pay',
+        text: 'Press the button below to proceed to the payment page',
+        showCancelButton: true,
+        confirmButtonText: 'Pay Now',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#dc2626',
+        reverseButtons: false,
+        customClass: {
+            confirmButton: 'btn btn-lg bg-amber-400 hover:bg-amber-500 border-none text-black font-black text-lg rounded-2xl',
+            cancelButton: 'btn btn-lg bg-red-600 hover:bg-red-700 border-none text-white font-black text-lg rounded-2xl'
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            window.location.href = 'payment.html';
+        }
+    });
 }
 
 setInterval(checkAllOrdersStatus, 3000);
