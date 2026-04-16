@@ -186,7 +186,13 @@ app.get("/admin/dashboard", function (req, res) {
         ${paymentWhere.length ? "WHERE " + paymentWhere.join(" AND ") : ""}
     `;
 
-  const reviewsSql = `SELECT COUNT(*) AS total_reviews FROM review r ${reviewWhere.length ? "WHERE " + reviewWhere.join(" AND ") : ""}`;
+  const reviewsSql = `
+        SELECT 
+            COUNT(*) AS review_count,
+            AVG(r.rating) AS avg_rating
+        FROM review r
+        ${reviewWhere.length ? "WHERE " + reviewWhere.join(" AND ") : ""}
+    `;
 
   const topSql = `
         SELECT m.menu_id, m.name, COUNT(*) AS count
@@ -199,6 +205,12 @@ app.get("/admin/dashboard", function (req, res) {
         LIMIT 6
     `;
 
+  const ordersCountSql = `
+        SELECT COUNT(*) AS total_orders
+        FROM \`order\` o
+        ${orderWhere.length ? "WHERE " + orderWhere.join(" AND ") : ""}
+    `;
+
   con.query(totalsSql, paymentParams, function (err, totalsRes) {
     if (err) return res.status(500).json({ message: "Server error" });
 
@@ -208,10 +220,15 @@ app.get("/admin/dashboard", function (req, res) {
       con.query(topSql, orderParams, function (err, topRes) {
         if (err) return res.status(500).json({ message: "Server error" });
 
-        res.json({
-          ...totalsRes[0],
-          ...reviewsRes[0],
-          top_menu: topRes,
+        con.query(ordersCountSql, orderParams, function (err, ordersRes) {
+          if (err) return res.status(500).json({ message: "Server error" });
+
+          res.json({
+            ...totalsRes[0],
+            ...reviewsRes[0],
+            total_orders: ordersRes[0]?.total_orders || 0,
+            top_menu: topRes,
+          });
         });
       });
     });
@@ -271,7 +288,6 @@ app.get("/admin/menu", function (req, res) {
       if (err) return res.status(500).json({ message: "Unable to fetch menu" });
       const normalized = results.map((item) => ({
         ...item,
-        cat: item.cat || "General",
         enabled: item.status === "enable",
       }));
       res.json(normalized);
@@ -336,25 +352,41 @@ app.get("/admin/payments", function (req, res) {
 
 // admin reviews list
 app.get("/admin/reviews", function (req, res) {
+  const { start, end } = req.query;
   con.query("SHOW COLUMNS FROM review LIKE 'rating'", function (err, cols) {
     if (err)
       return res.status(500).json({ message: "Unable to fetch reviews" });
     const hasRating = Array.isArray(cols) && cols.length > 0;
+
+    const conditions = [];
+    const params = [];
+    if (start) {
+      conditions.push("DATE(r.created_at) >= ?");
+      params.push(start);
+    }
+    if (end) {
+      conditions.push("DATE(r.created_at) <= ?");
+      params.push(end);
+    }
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
     const sql = hasRating
       ? `
             SELECT r.review_id, r.customer_id, c.table_number, r.comment, r.created_at, r.rating
             FROM review r
             LEFT JOIN customer c ON r.customer_id = c.customer_id
+            ${whereClause}
             ORDER BY r.created_at DESC
         `
       : `
             SELECT r.review_id, r.customer_id, c.table_number, r.comment, r.created_at
             FROM review r
             LEFT JOIN customer c ON r.customer_id = c.customer_id
+            ${whereClause}
             ORDER BY r.created_at DESC
         `;
 
-    con.query(sql, function (err2, results) {
+    con.query(sql, params, function (err2, results) {
       if (err2)
         return res.status(500).json({ message: "Unable to fetch reviews" });
       res.json(results);
@@ -396,6 +428,16 @@ app.post("/cook/register", function (req, res) {
       }
       return res.status(200).json({ message: 'Registered', cookId: cook.cook_id });
     });
+  });
+});
+
+// ------------------------------------ cook routes ------------------------------------
+app.get("/cook/cooks-list", function (req, res) {
+  const { type } = req.query;
+  const status = type === 'register' ? 'disable' : 'enable';
+  con.query("SELECT cook_id, username FROM cooks WHERE status = ?", [status], function (err, results) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
   });
 });
 
@@ -467,7 +509,19 @@ app.get('/cook/info', function (req, res) {
 
 // cook orders
 app.get("/cook/orders", function (req, res) {
-  const { status } = req.query;
+  const { status, startDate, endDate } = req.query;
+  const conditions = ["oi.status = ?"];
+  const params = [status || "pending"];
+  const dateField = status === "serving" ? "COALESCE(oi.updated_at, o.created_at)" : "o.created_at";
+
+  if (startDate) {
+    conditions.push(`DATE(${dateField}) >= ?`);
+    params.push(startDate);
+  }
+  if (endDate) {
+    conditions.push(`DATE(${dateField}) <= ?`);
+    params.push(endDate);
+  }
 
   const sql = `
         SELECT 
@@ -478,16 +532,17 @@ app.get("/cook/orders", function (req, res) {
             oi.status,
             o.customer_id,
             c.table_number,
-            o.created_at
+            o.created_at,
+            oi.updated_at
         FROM order_item oi
         JOIN menu m ON oi.menu_id = m.menu_id
         JOIN \`order\` o ON oi.order_id = o.order_id
         JOIN customer c ON o.customer_id = c.customer_id
-        WHERE oi.status = ?
+        WHERE ${conditions.join(" AND ")}
         ORDER BY o.created_at ASC
     `;
 
-  con.query(sql, [status || "pending"], function (err, results) {
+  con.query(sql, params, function (err, results) {
     if (err) {
       console.error("DB ERROR:", err);
       return res.status(500).json({ message: "DB error" });
@@ -620,15 +675,29 @@ app.get("/cook/dashboard", function (req, res) {
 
 // cook reviews
 app.get("/cook/reviews", function (req, res) {
+  const { start, end } = req.query;
   con.query("SHOW COLUMNS FROM review LIKE 'rating'", function (err, cols) {
     if (err)
       return res.status(500).json({ message: "Unable to fetch reviews" });
+
+    const conditions = [];
+    const params = [];
+    if (start) {
+      conditions.push("DATE(r.created_at) >= ?");
+      params.push(start);
+    }
+    if (end) {
+      conditions.push("DATE(r.created_at) <= ?");
+      params.push(end);
+    }
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const hasRating = Array.isArray(cols) && cols.length > 0;
     const sqlWithRating = `
             SELECT r.review_id, r.customer_id, c.table_number, r.comment, r.created_at, r.rating
             FROM review r
             LEFT JOIN customer c ON r.customer_id = c.customer_id
+            ${whereClause}
             ORDER BY r.created_at DESC
         `;
     const sql = hasRating
@@ -637,10 +706,11 @@ app.get("/cook/reviews", function (req, res) {
             SELECT r.review_id, r.customer_id, c.table_number, r.comment, r.created_at
             FROM review r
             LEFT JOIN customer c ON r.customer_id = c.customer_id
+            ${whereClause}
             ORDER BY r.created_at DESC
         `;
 
-    con.query(sql, function (err2, results) {
+    con.query(sql, params, function (err2, results) {
       if (err2)
         return res.status(500).json({ message: "Unable to fetch reviews" });
       res.json(results);

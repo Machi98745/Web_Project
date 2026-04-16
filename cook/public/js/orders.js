@@ -53,22 +53,50 @@ let isUpdating = false;
 let currentPage = 1;
 const ITEMS_PER_PAGE = 15;
 let itemCards = [];
+let currentStartDate = '';
+let currentEndDate = '';
+
+function getOrdersUrl(status) {
+    const params = new URLSearchParams();
+    params.append('status', status);
+    if (currentStartDate) params.append('startDate', currentStartDate);
+    if (currentEndDate) params.append('endDate', currentEndDate);
+    return `/cook/orders?${params.toString()}`;
+}
+
+function applyDateFilter() {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    currentStartDate = start;
+    currentEndDate = end;
+    currentPage = 1;
+    loadOrders(currentTab);
+}
+
+function clearDateFilter() {
+    currentStartDate = '';
+    currentEndDate = '';
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    currentPage = 1;
+    loadOrders(currentTab);
+}
 
 async function loadOrders(status = 'preparing') {
     try {
         let data = [];
 
         if (status === 'preparing') {
-            // fetch both pending and cooking
+            // fetch both pending and cooking with optional date filters
             const [r1, r2] = await Promise.all([
-                fetch('/cook/orders?status=pending'),
-                fetch('/cook/orders?status=cooking')
+                fetch(getOrdersUrl('pending')),
+                fetch(getOrdersUrl('cooking'))
             ]);
             const d1 = r1.ok ? await r1.json() : [];
             const d2 = r2.ok ? await r2.json() : [];
             data = (d1 || []).concat(d2 || []);
         } else {
-            const res = await fetch(`/cook/orders?status=${status}`);
+            const res = await fetch(getOrdersUrl(status));
             data = await res.json();
         }
 
@@ -76,7 +104,8 @@ async function loadOrders(status = 'preparing') {
             order_item_id: item.order_item_id,
             orderId: `ORD-${item.order_id}`,
             table: `Table ${item.table_number}`,
-            time: new Date(item.created_at).toLocaleTimeString(),
+            time: new Date(item.updated_at || item.created_at).toLocaleTimeString(),
+            date: new Date(item.updated_at || item.created_at).toLocaleDateString(),
             type: isDrink(item.menu_name) ? 'drink' : 'food',
             label: item.menu_name || item.name || 'Unknown',
             items: [item.menu_name],
@@ -218,7 +247,10 @@ function buildCardHTML(card, index) {
                 <div>
                     <span class="font-semibold text-gray-800">${card.orderId}</span>
                 </div>
-                <span class="text-sm text-gray-400">${card.time}</span>
+                <div class="text-right">
+                    <div class="text-sm text-gray-400">${card.date}</div>
+                    <div class="text-xs text-gray-400">${card.time}</div>
+                </div>
             </div>
             <div class="flex items-center gap-2 mt-1">
                 <span class="text-sm text-gray-500">${card.table}</span>

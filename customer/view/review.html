@@ -13,18 +13,20 @@
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 text-center">
     
     <div class="card bg-white p-8 shadow-sm border border-slate-200 max-w-md w-full rounded-3xl overflow-hidden">
-        
-        <div class="flex justify-center mb-6">
+        <div class="flex items-center justify-between mb-6 gap-4">
+            <button onclick="goBack()" class="btn btn-ghost btn-sm text-slate-500 hover:text-slate-900">
+                ← Back
+            </button>
             <span class="bg-amber-100 text-amber-600 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">
                 Feedback
             </span>
         </div>
 
         <h2 class="text-3xl font-black text-slate-800 mb-2 tracking-tight">How was your meal?</h2>
-        <p class="text-sm text-slate-400 mb-8 font-medium">Please let us know your feedback below.</p>
+        <p class="text-sm text-slate-400 mb-6 font-medium">Please let us know your feedback before you leave.</p>
 
-        <div class="form-control mb-8">
-            <label class="label justify-center">
+        <div class="form-control mb-6 text-left">
+            <label class="label">
                 <span class="label-text text-slate-400 uppercase text-[10px] font-black tracking-[0.2em]">Write a comment</span>
             </label>
             <textarea id="comment"
@@ -32,7 +34,7 @@
                 placeholder="Tell the chef what you liked..."></textarea>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-6 text-left">
             <label class="label">
                 <span class="label-text text-slate-400 uppercase text-[10px] font-black tracking-[0.2em]">Rate your experience</span>
             </label>
@@ -43,9 +45,7 @@
                 <span data-value="4">☆</span>
                 <span data-value="5">☆</span>
             </div>
-        </div>
-
-        <button onclick="submitReview()" 
+            <p id="rating-label" class="text-xs text-gray-400 mt-2">Select a star rating.</p>
             class="btn btn-lg bg-amber-400 hover:bg-amber-500 border-none text-black font-black w-full rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95">
             Submit & Finish
         </button>

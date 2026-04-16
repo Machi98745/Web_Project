@@ -11,6 +11,29 @@ function switchCard(view) {
     document.getElementById('loginErr').classList.add('hidden');
     document.getElementById('regErr').classList.add('hidden');
     document.getElementById('regOk').classList.add('hidden');
+
+    loadCooks(view);
+}
+
+
+// Load cooks for dropdown
+async function loadCooks(type) {
+    try {
+        const res = await fetch(`/cook/cooks-list?type=${type}`);
+        if (!res.ok) throw new Error('Failed to load cooks');
+        const cooks = await res.json();
+        const selectId = type === 'register' ? 'regCookId' : 'cookId';
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Select Cook ID</option>';
+        cooks.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.username;
+            opt.textContent = c.username;
+            select.appendChild(opt);
+        });
+    } catch (e) {
+        console.error('Error loading cooks:', e);
+    }
 }
 
 
@@ -111,3 +134,5 @@ document.addEventListener('keydown', e => {
     const onLogin = !document.getElementById('loginCard').classList.contains('hidden');
     onLogin ? doLogin() : doRegister();
 });
+
+loadCooks('login');

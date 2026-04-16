@@ -425,7 +425,7 @@ input:checked+.slider:before {
 /* ── DASHBOARD STATS ── */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 14px;
     margin-bottom: 1.5rem;
 }
@@ -517,6 +517,19 @@ input:checked+.slider:before {
     color: var(--accent);
     letter-spacing: -1px;
     font-size: 13px;
+}
+.rating-cell {
+    min-width: 135px;
+}
+.star {
+    font-size: 13px;
+    margin-right: 1px;
+}
+.star-active {
+    color: var(--accent);
+}
+.star-inactive {
+    color: #d1d5db;
 }
 
 /* ── MODAL ── */

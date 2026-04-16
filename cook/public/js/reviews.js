@@ -36,28 +36,60 @@ function logout() {
 
 // Review data (loaded from server)
 let reviews = [];
+let currentPage = 1;
+const pageSize = 9;
+
+function getReviewQueryParams() {
+  const start = document.getElementById("review-start")?.value;
+  const end = document.getElementById("review-end")?.value;
+  const params = new URLSearchParams();
+  if (start) params.append("start", start);
+  if (end) params.append("end", end);
+  return params.toString();
+}
 
 async function loadCookReviews() {
   try {
-    const res = await fetch("/cook/reviews");
+    const query = getReviewQueryParams();
+    const res = await fetch("/cook/reviews" + (query ? `?${query}` : ""));
     if (!res.ok) throw new Error("Failed to fetch reviews");
     const data = await res.json();
 
     // map server rows into frontend-friendly objects
-    reviews = (data || []).map((r) => ({
-      order: r.review_id ? `#REV-${r.review_id}` : "-",
-      rating: typeof r.rating === "number" ? r.rating : null,
-      text: r.comment || r.text || "-",
-      table: r.table_number ? `T-${r.table_number}` : "-",
-      time: r.created_at ? new Date(r.created_at).toLocaleTimeString() : "-",
-    }));
+    reviews = (data || []).map((r) => {
+      const ratingValue = r.rating != null ? Number(r.rating) : null;
+      return {
+        order: r.review_id ? `#REV-${r.review_id}` : "-",
+        rating: Number.isFinite(ratingValue) ? ratingValue : null,
+        text: r.comment || r.text || "-",
+        table: r.table_number ? `T-${r.table_number}` : "-",
+        time: r.created_at ? new Date(r.created_at).toLocaleTimeString() : "-",
+      };
+    });
 
+    currentPage = 1;
     renderStats();
     renderBreakdown();
     renderReviewGrid();
+    updateReviewCount();
+    renderPagination();
   } catch (err) {
     console.error("loadCookReviews error", err);
+    document.getElementById("review-count").textContent = "Unable to load reviews.";
   }
+}
+
+function applyReviewFilter() {
+  currentPage = 1;
+  loadCookReviews();
+}
+
+function clearReviewFilter() {
+  const start = document.getElementById("review-start");
+  const end = document.getElementById("review-end");
+  if (start) start.value = "";
+  if (end) end.value = "";
+  applyReviewFilter();
 }
 
 // Style maps
@@ -139,7 +171,21 @@ function renderBreakdown() {
 
 // Review cards
 function renderReviewGrid() {
-  document.getElementById("review-grid").innerHTML = reviews
+  const grid = document.getElementById("review-grid");
+  if (!reviews.length) {
+    grid.innerHTML = `
+      <div class="col-span-full bg-white border border-dashed border-gray-300 rounded-2xl p-8 text-center text-gray-500">
+        <p class="text-lg font-semibold mb-2">No reviews available yet</p>
+        <p class="text-sm">Once customers submit feedback, reviews will appear here.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const start = (currentPage - 1) * pageSize;
+  const pageReviews = reviews.slice(start, start + pageSize);
+
+  grid.innerHTML = pageReviews
     .map((r) => {
       const stars =
         typeof r.rating === "number"
@@ -157,14 +203,14 @@ function renderReviewGrid() {
 
       return `
             <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                <div class="flex justify-between items-start mb-2">
+                <div class="flex justify-between items-start mb-2 gap-3">
                     <span class="mono text-yellow-500 text-xs font-medium">${r.order}</span>
                     ${badge}
                 </div>
                 <div class="text-base mb-2">${stars}</div>
-                <p class="text-sm text-gray-600 leading-relaxed">${r.text}</p>
-                <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-50 text-xs text-gray-400 mono">
-                    <span>Table ${r.table}</span>
+                <p class="text-sm text-gray-600 leading-relaxed min-h-[3rem] break-words">${r.text}</p>
+                <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-50 text-xs text-gray-400 mono gap-2">
+                    <span>${r.table}</span>
                     <span>${r.time}</span>
                 </div>
             </div>
@@ -173,5 +219,46 @@ function renderReviewGrid() {
     .join("");
 }
 
+function renderPagination() {
+  const controls = document.getElementById("pagination-controls");
+  if (!controls) return;
+
+  const totalPages = Math.max(1, Math.ceil(reviews.length / pageSize));
+  if (totalPages <= 1) {
+    controls.innerHTML = "";
+    return;
+  }
+
+  const pages = [];
+  for (let i = 1; i <= totalPages; i += 1) {
+    pages.push(`
+      <button class="btn btn-xs ${currentPage === i ? 'btn-primary' : 'btn-ghost'}" onclick="gotoPage(${i})">${i}</button>
+    `);
+  }
+
+  controls.innerHTML = `
+    <button class="btn btn-xs btn-outline" ${currentPage === 1 ? 'disabled' : ''} onclick="gotoPage(${currentPage - 1})">Prev</button>
+    ${pages.join('')}
+    <button class="btn btn-xs btn-outline" ${currentPage === totalPages ? 'disabled' : ''} onclick="gotoPage(${currentPage + 1})">Next</button>
+  `;
+}
+
+function gotoPage(page) {
+  const totalPages = Math.max(1, Math.ceil(reviews.length / pageSize));
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderReviewGrid();
+  renderPagination();
+}
+
+function updateReviewCount() {
+  const countEl = document.getElementById("review-count");
+  if (!countEl) return;
+  countEl.textContent = reviews.length
+    ? `${reviews.length} review${reviews.length > 1 ? "s" : ""}`
+    : "No reviews found.";
+}
+
 // Init
 loadCookReviews();
+

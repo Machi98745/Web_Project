@@ -1,8 +1,18 @@
 async function submitReview() {
     const commentInput = document.getElementById('comment');
-    const comment = commentInput.value;
+    const comment = commentInput.value.trim();
     const customerId = sessionStorage.getItem('customerId');
     const rating = window.__selectedRating || null;
+
+    if (!customerId) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Session Expired',
+            text: 'Please login again to submit your review.',
+            confirmButtonColor: '#3085d6'
+        }).then(() => window.location.href = '/customer/view/login.html');
+        return;
+    }
 
     if (rating === null) {
         Swal.fire({
@@ -78,8 +88,30 @@ async function submitReview() {
     }
 }
 
+function goBack() {
+    const customerId = sessionStorage.getItem('customerId');
+    if (customerId) {
+        window.location.href = '/customer/view/status.html';
+    } else {
+        window.location.href = '/customer/view/login.html';
+    }
+}
+
+function updateRatingLabel(value) {
+    const label = document.getElementById('rating-label');
+    if (!label) return;
+    const descriptions = {
+        1: 'Very poor',
+        2: 'Needs improvement',
+        3: 'Good',
+        4: 'Great',
+        5: 'Excellent',
+    };
+    label.textContent = value ? `${value} star${value > 1 ? 's' : ''} — ${descriptions[value]}` : 'Select a star rating.';
+}
+
 // star rating UI
-document.addEventListener('DOMContentLoaded', function () {
+function initializeStars() {
     const row = document.getElementById('star-row');
     if (!row) return;
 
@@ -88,10 +120,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!v) return;
         const val = parseInt(v, 10);
         window.__selectedRating = val;
-        // update stars
-        Array.from(row.querySelectorAll('span')).forEach(s => {
+        Array.from(row.querySelectorAll('span')).forEach((s) => {
             const sv = parseInt(s.getAttribute('data-value'), 10);
             s.textContent = sv <= val ? '★' : '☆';
         });
+        updateRatingLabel(val);
     });
+}
+
+window.addEventListener('DOMContentLoaded', function () {
+    initializeStars();
+    updateRatingLabel(0);
 });

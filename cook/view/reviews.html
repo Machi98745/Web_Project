@@ -47,8 +47,26 @@
         </div>
 
         <!-- REVIEW CARDS -->
-        <p class="text-xs tracking-widest uppercase text-base-content/40 mb-3">All Reviews</p>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+            <div>
+                <p class="text-xs tracking-widest uppercase text-base-content/40">All Reviews</p>
+                <p id="review-count" class="text-sm text-gray-500 mt-1">Loading reviews...</p>
+                <div class="flex flex-wrap items-center gap-2 mt-3">
+                    <button onclick="applyReviewFilter()" class="btn btn-sm btn-outline">Filter</button>
+                    <button onclick="clearReviewFilter()" class="btn btn-sm">Clear</button>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+                <label class="mono">From</label>
+                <input id="review-start" type="date" class="input input-sm bg-white border-gray-200 text-gray-700" />
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+                <label class="mono">To</label>
+                <input id="review-end" type="date" class="input input-sm bg-white border-gray-200 text-gray-700" />
+            </div>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="review-grid"></div>
+        <div class="flex items-center justify-center gap-2 mt-4" id="pagination-controls"></div>
     </main>
 
     <script src="/cook/public/js/reviews.js"></script>

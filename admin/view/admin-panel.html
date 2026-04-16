@@ -62,26 +62,31 @@
                 </div>
                 <div class="date-filter">
                     <label>From</label>
-                    <input type="date" id="dash-from" value="2025-01-01">
+                    <input type="date" id="dash-from">
                     <label>To</label>
-                    <input type="date" id="dash-to" value="2025-12-31">
-                    <button class="btn-filter">Apply</button>
+                    <input type="date" id="dash-to">
+                    <button class="btn-filter" onclick="applyDashboardFilter()">Apply</button>
                 </div>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="lbl">Customers</div>
                         <div class="val" id="customers-val">-</div>
-                        <div class="sub">Unique orders</div>
+                        <div class="sub">Unique customers</div>
                     </div>
                     <div class="stat-card accent-card">
                         <div class="lbl">Total payment</div>
                         <div class="val" id="total-payment-val">฿-</div>
-                        <div class="sub">All time</div>
+                        <div class="sub">Date range total</div>
                     </div>
                     <div class="stat-card">
                         <div class="lbl">Average rating</div>
                         <div class="val" id="avg-rating-val" style="color:var(--accent);">- ★</div>
-                        <div class="sub">From 312 reviews</div>
+                        <div class="sub" id="avg-rating-sub">From 0 reviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Orders</div>
+                        <div class="val" id="total-orders-val">-</div>
+                        <div class="sub">Submitted orders</div>
                     </div>
                     <div class="stat-card">
                         <div class="lbl">Active cooks</div>
@@ -135,7 +140,6 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Category</th>
                                 <th>Price</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -212,13 +216,22 @@
                 </div>
                 <div class="table-card">
                     <div class="table-toolbar">
-                        <h3>All reviews</h3>
+                        <div>
+                            <h3>All reviews</h3>
+                            <div class="review-filter">
+                                <label>From</label>
+                                <input type="date" id="review-from" />
+                                <label>To</label>
+                                <input type="date" id="review-to" />
+                                <button class="btn-filter" onclick="loadReviews()">Apply</button>
+                            </div>
+                        </div>
                     </div>
                     <table>
                         <thead>
                             <tr>
-                                <th>Customer</th>
-                                <th>Order</th>
+                                <th>Review ID</th>
+                                <th>Table number</th>
                                 <th>Rating</th>
                                 <th>Comment</th>
                                 <th>Date</th>
@@ -254,14 +267,6 @@
             <input type="hidden" id="edit-item-idx" value="-1">
             <div class="field"><label>Item name</label><input type="text" id="new-item-name"
                     placeholder="e.g. Pad Thai"></div>
-            <div class="field"><label>Category</label>
-                <select id="new-item-cat" style="width:100%">
-                    <option>Main course</option>
-                    <option>Appetizer</option>
-                    <option>Dessert</option>
-                    <option>Drink</option>
-                </select>
-            </div>
             <div class="field"><label>Price (฿)</label><input type="number" id="new-item-price" placeholder="e.g. 120">
             </div>
             <div class="modal-actions">

@@ -34,6 +34,18 @@
         renderMenu();
     }
 
+    function getDashboardQueryParams() {
+        const params = new URLSearchParams();
+        const start = document.getElementById('dash-from')?.value;
+        const end = document.getElementById('dash-to')?.value;
+        if (start) params.append('start', start);
+        if (end) params.append('end', end);
+        return params.toString();
+    }
+
+    function applyDashboardFilter() {
+        loadDashboard();
+    }
 
     async function loadPayments() {
         const res = await fetch('/admin/payments');
@@ -44,30 +56,44 @@
 
     async function loadDashboard() {
         try {
-            const res = await fetch('/admin/dashboard');
+            const query = getDashboardQueryParams();
+            const res = await fetch('/admin/dashboard' + (query ? `?${query}` : ''));
             if (!res.ok) throw new Error('Failed');
             const data = await res.json();
 
             // populate stat cards
             document.getElementById('customers-val').innerText = data.total_customers || 0;
             document.getElementById('total-payment-val').innerText = '฿' + (data.total_payment || 0);
-            document.getElementById('avg-rating-val').innerText = (data.total_reviews || 0) + ' reviews';
+            const avgRating = data.avg_rating != null ? Number(data.avg_rating).toFixed(1) : '-';
+            document.getElementById('avg-rating-val').innerText = avgRating === '-' ? '- ★' : `${avgRating} ★`;
+            document.getElementById('avg-rating-sub').innerText = `From ${data.review_count || 0} reviews`;
+            document.getElementById('total-orders-val').innerText = data.total_orders || 0;
             // active cooks is derived from cooks list; set placeholder until cooks load
             document.getElementById('active-cooks-val').innerText = '-';
 
             // top menu: transform into structure used by renderDash
             topMenu = (data.top_menu || []).map(t => ({ name: t.name, count: t.count }));
-            // fallback: if backend returned total_reviews only, keep topMenu empty
-            if (topMenu.length) renderDash();
+            // fallback: if backend returned no results, clear bars
+            if (topMenu.length) {
+                renderDash();
+            } else {
+                document.getElementById('top-menu-bars').innerHTML = '<div style="color: var(--muted); font-size: 13px;">No menu data for this range</div>';
+            }
         } catch (err) {
             console.error('loadDashboard error', err);
         }
     }
 
     async function loadReviews() {
-        const res = await fetch('/admin/reviews');
+        const params = new URLSearchParams();
+        const start = document.getElementById('review-from')?.value;
+        const end = document.getElementById('review-to')?.value;
+        if (start) params.append('start', start);
+        if (end) params.append('end', end);
+
+        const res = await fetch('/admin/reviews' + (params.toString() ? `?${params.toString()}` : ''));
         const data = await res.json();
-        reviews = data;
+        reviews = Array.isArray(data) ? data : [];
         renderReviews();
     }
 
@@ -162,7 +188,6 @@
             (m, i) => `
                 <tr>
                 <td style="font-weight:500;">${m.name}</td>
-                <td><span class="badge badge-info">${m.cat || 'ทั่วไป'}</span></td>
                 <td style="color:var(--accent);font-weight:500;">฿${m.price}</td>
                 <td>
                     <span class="badge ${m.enabled ? 'badge-on' : 'badge-off'}">${m.enabled ? 'Active' : 'Disabled'}</span>
@@ -197,7 +222,6 @@
         document.getElementById('menu-modal-title').textContent = 'Edit menu item';
         document.getElementById('edit-item-idx').value = i;
         document.getElementById('new-item-name').value = m.name;
-        document.getElementById('new-item-cat').value = m.cat;
         document.getElementById('new-item-price').value = m.price;
         openModal('menu');
     }
@@ -231,16 +255,33 @@
     }
 
     function renderReviews() {
-        document.getElementById('reviews-tbody').innerHTML = reviews.map(
-            r => `
+        const body = document.getElementById('reviews-tbody');
+        if (!reviews.length) {
+            body.innerHTML = `
                 <tr>
-                <td style="font-weight:500;">Table  ${r.table_number || 'Unknown'}</td>
-                <td style="color:var(--accent);">${r.comment || '-'} (ID ${r.review_id})</td>
-                <td><span class="stars">★★★★★</span></td>
+                    <td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">No reviews found for the selected date range.</td>
+                </tr>`;
+            return;
+        }
+
+        body.innerHTML = reviews.map((r) => {
+            const rawRating = r.rating != null ? Number(r.rating) : null;
+            const rating = Number.isFinite(rawRating) ? rawRating : null;
+            const stars = rating
+                ? Array.from({ length: 5 }, (_, i) =>
+                    `<span class="star ${i < rating ? 'star-active' : 'star-inactive'}">★</span>`,
+                ).join('')
+                : '<span class="text-xs text-gray-400">No rating</span>';
+
+            return `
+                <tr>
+                <td style="font-weight:500;">${r.review_id || '-'}</td>
+                <td style="font-weight:500;">${r.table_number || '-'}</td>
+                <td class="rating-cell">${stars}</td>
                 <td style="color:var(--muted);max-width:220px;">${r.comment || '-'}</td>
                 <td style="color:var(--muted);">${r.created_at ? new Date(r.created_at).toLocaleString() : '-'}</td>
-                </tr>`
-        ).join('');
+                </tr>`;
+        }).join('');
     }
 
     // ── CRUD ──
@@ -281,7 +322,6 @@
 
     async function saveMenuItem() {
         const name = document.getElementById('new-item-name').value.trim();
-        const cat = document.getElementById('new-item-cat').value;
         const price = parseInt(document.getElementById('new-item-price').value) || 0;
         const idx = parseInt(document.getElementById('edit-item-idx').value);
 
@@ -292,13 +332,13 @@
             await fetch(`/admin/menu/${menuId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, cat, price })
+                body: JSON.stringify({ name, price })
             });
         } else {
             await fetch('/admin/menu', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, cat, price })
+                body: JSON.stringify({ name, price })
             });
         }
 
