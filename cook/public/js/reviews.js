@@ -190,10 +190,10 @@ function renderReviewGrid() {
       const stars =
         typeof r.rating === "number"
           ? Array.from(
-              { length: 5 },
-              (_, i) =>
-                `<span class="${i < r.rating ? "text-yellow-400" : "text-gray-200"}">★</span>`,
-            ).join("")
+            { length: 5 },
+            (_, i) =>
+              `<span class="${i < r.rating ? "text-yellow-400" : "text-gray-200"}">★</span>`,
+          ).join("")
           : '<span class="text-xs text-gray-400">No rating</span>';
 
       const badge =

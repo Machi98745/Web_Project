@@ -20,17 +20,17 @@ function renderMenu(filter = 'all', search = '') {
 
     const filtered = inventory.filter(item => {
         const isDrink = item.menu_id >= 2000;
-        const matchesCat = filter === 'all' || 
-                          (filter === 'Drink' && isDrink) || 
-                          (filter === 'Main Dish' && !isDrink);
-        
+        const matchesCat = filter === 'all' ||
+            (filter === 'Drink' && isDrink) ||
+            (filter === 'Main Dish' && !isDrink);
+
         const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
         return matchesCat && matchesSearch;
     });
 
     grid.innerHTML = filtered.map(item => {
-    const isOut = item.status === 'disable';
-    return `
+        const isOut = item.status === 'disable';
+        return `
     <div class="card bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden ${isOut ? 'opacity-50' : ''}">
         <div class="p-4 flex flex-col h-full">
             <div class="flex justify-between items-start mb-2">
@@ -46,7 +46,7 @@ function renderMenu(filter = 'all', search = '') {
             </div>
         </div>
     </div>`;
-}).join('');
+    }).join('');
     updateUI();
 }
 
@@ -62,10 +62,10 @@ function addToCart(id) {
 
 function filterCategory(cat) {
     document.querySelectorAll('.cat-btn').forEach(btn => {
-        const isMatch = (cat === 'all' && btn.innerText === 'All') || 
-                        (cat === 'Main Dish' && btn.innerText === 'Main Dish') ||
-                        (cat === 'Drink' && btn.innerText === 'Drinks');
-        
+        const isMatch = (cat === 'all' && btn.innerText === 'All') ||
+            (cat === 'Main Dish' && btn.innerText === 'Main Dish') ||
+            (cat === 'Drink' && btn.innerText === 'Drinks');
+
         if (isMatch) {
             btn.classList.remove('bg-white', 'text-slate-500', 'border-slate-200');
             btn.classList.add('bg-green-600', 'text-white');
@@ -92,7 +92,7 @@ function updateUI() {
 function checkActiveOrder() {
     const orderIds = JSON.parse(sessionStorage.getItem('allOrderIds')) || [];
     const statusBtn = document.querySelector('.fixed.top-4.right-4'); // อ้างอิงปุ่มลอย
-    
+
     if (statusBtn) {
         if (orderIds.length > 0) {
             statusBtn.classList.remove('hidden');

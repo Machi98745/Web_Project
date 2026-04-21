@@ -11,18 +11,22 @@
 </head>
 
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
-    
+
     <div class="card w-full max-w-md bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden">
         <div class="card-body p-8">
-            
+
             <div class="flex justify-center mb-6">
-                <span class="bg-slate-100 text-slate-400 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-[0.2em]">Kitchen Receipt</span>
+                <span
+                    class="bg-slate-100 text-slate-400 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-[0.2em]">Kitchen
+                    Receipt</span>
             </div>
 
-            <h2 class="text-3xl font-black text-slate-800 border-b border-slate-100 pb-6 flex justify-between items-end">
-                Final Bill <span id="table-display" class="text-xs font-bold text-amber-500 uppercase tracking-widest"></span>
+            <h2
+                class="text-3xl font-black text-slate-800 border-b border-slate-100 pb-6 flex justify-between items-end">
+                Final Bill <span id="table-display"
+                    class="text-xs font-bold text-amber-500 uppercase tracking-widest"></span>
             </h2>
-            
+
             <div id="bill-summary" class="py-6 space-y-4 min-h-[100px]">
                 <div class="flex justify-center py-4">
                     <div class="loading loading-dots loading-md text-amber-400"></div>
@@ -35,8 +39,9 @@
             </div>
 
             <div class="card-actions mt-10">
-                <button onclick="processPayment()" class="btn btn-lg bg-amber-400 hover:bg-amber-500 border-none text-black font-black text-lg w-full rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95"> 
-                    Confirm Payment 
+                <button onclick="processPayment()"
+                    class="btn btn-lg bg-amber-400 hover:bg-amber-500 border-none text-black font-black text-lg w-full rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95">
+                    Confirm Payment
                 </button>
                 <p class="text-[10px] text-center w-full text-slate-300 font-medium uppercase mt-2 tracking-tighter">
                     Thank you for dining with us
@@ -47,4 +52,5 @@
 
     <script src="/customer/public/js/payment.js"></script>
 </body>
+
 </html>

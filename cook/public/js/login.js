@@ -7,7 +7,7 @@ if (sessionStorage.getItem('cookId')) {
 function switchCard(view) {
     document.getElementById('loginCard').classList.toggle('hidden', view !== 'login');
     document.getElementById('registerCard').classList.toggle('hidden', view !== 'register');
- 
+
     document.getElementById('loginErr').classList.add('hidden');
     document.getElementById('regErr').classList.add('hidden');
     document.getElementById('regOk').classList.add('hidden');
@@ -42,33 +42,33 @@ async function doLogin() {
     const cookId = document.getElementById('cookId').value.trim();
     const password = document.getElementById('cookPass').value;
     const errBanner = document.getElementById('loginErr');
- 
+
     errBanner.classList.add('hidden');
- 
+
     if (!cookId || !password) {
         errBanner.classList.remove('hidden');
         return;
     }
- 
+
     try {
         const res = await fetch('/cook/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cookId, password }) 
+            body: JSON.stringify({ cookId, password })
         });
- 
+
         if (res.ok) {
             const data = await res.json();
             sessionStorage.setItem('cookId', data.cookId);
-            sessionStorage.setItem('cookName', data.name); 
-            window.location.href = '/cook/view/orders.html'; 
+            sessionStorage.setItem('cookName', data.name);
+            window.location.href = '/cook/view/orders.html';
         } else {
-              const errorData = await res.json().catch(() => ({}));
-              errBanner.classList.remove('hidden');
-              const span = errBanner.querySelector('span');
-              const note = errorData.note ? (' — ' + errorData.note) : '';
-              span.textContent = (errorData.message || 'Login failed') + note;
-              console.error(errorData.message, errorData.note);
+            const errorData = await res.json().catch(() => ({}));
+            errBanner.classList.remove('hidden');
+            const span = errBanner.querySelector('span');
+            const note = errorData.note ? (' — ' + errorData.note) : '';
+            span.textContent = (errorData.message || 'Login failed') + note;
+            console.error(errorData.message, errorData.note);
         }
     } catch (e) {
         console.error("Connection error:", e);
@@ -80,16 +80,16 @@ async function doLogin() {
 // Register
 async function doRegister() {
     const cookId = document.getElementById('regCookId').value.trim();
-    const pass   = document.getElementById('regPass').value;
+    const pass = document.getElementById('regPass').value;
 
-    const err    = document.getElementById('regErr');
+    const err = document.getElementById('regErr');
     const errMsg = document.getElementById('regErrMsg');
-    const ok     = document.getElementById('regOk');
+    const ok = document.getElementById('regOk');
 
     err.classList.add('hidden');
     ok.classList.add('hidden');
 
-    if (!cookId)         { showRegError(errMsg, err, 'Please enter the Cook ID provided by admin'); return; }
+    if (!cookId) { showRegError(errMsg, err, 'Please enter the Cook ID provided by admin'); return; }
     if (pass.length < 4) { showRegError(errMsg, err, 'Password must be at least 4 characters'); return; }
 
     try {

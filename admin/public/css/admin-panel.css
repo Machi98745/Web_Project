@@ -1,13 +1,13 @@
 :root {
-    --bg: #f5f6f8;             
-    --surface: #ffffff;        
-    --surface2: #f0f1f3;     
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface2: #f0f1f3;
     --border: rgba(0, 0, 0, 0.08);
     --border2: rgba(0, 0, 0, 0.15);
-    --text: #1f2933;           
-    --muted: #6b7280;          
-    --accent: #f4c542;         
-    --accent2: #e0b233;    
+    --text: #1f2933;
+    --muted: #6b7280;
+    --accent: #f4c542;
+    --accent2: #e0b233;
     --danger: #e35d5d;
     --success: #4caf7a;
     --info: #4a90e2;
@@ -133,7 +133,7 @@ body {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 220px;
+    width: 200px;
     background: var(--surface);
     border-right: 0.5px solid var(--border);
     display: flex;
@@ -217,8 +217,9 @@ body {
 }
 
 .main {
-    margin-left: 220px;
-    padding: 2rem;
+    margin-left: 200px;
+    padding: 24px;
+    width: calc(100% - 200px);
     min-height: 100vh;
 }
 
@@ -244,7 +245,7 @@ body {
 }
 
 .page-header {
-    margin-bottom: 1.75rem;
+    margin-bottom: 12px;
 }
 
 .page-header h1 {
@@ -518,16 +519,20 @@ input:checked+.slider:before {
     letter-spacing: -1px;
     font-size: 13px;
 }
+
 .rating-cell {
     min-width: 135px;
 }
+
 .star {
     font-size: 13px;
     margin-right: 1px;
 }
+
 .star-active {
     color: var(--accent);
 }
+
 .star-inactive {
     color: #d1d5db;
 }
@@ -688,8 +693,164 @@ textarea:focus {
     border-color: var(--accent);
 }
 
-@media (max-width: 900px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+.kitchen-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.orders-board {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.order-card {
+    border-radius: 14px;
+    min-width: 0;
+    min-height: 145px;
+    padding: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+    border-left: 8px solid #ddd;
+    transition: .18s;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
+}
+
+.order-card.pending {
+    border-color: #ff9800;
+}
+
+.order-card.cooking {
+    border-color: #2196f3;
+}
+
+.order-card.done {
+    border-color: #4caf50;
+    opacity: .75;
+}
+
+.order-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.order-id {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.order-status {
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.order-status.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.order-status.cooking {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.order-status.done {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.order-items {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.order-meta {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.order-total {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111;
+}
+
+.empty-board {
+    padding: 60px;
+    text-align: center;
+    background: #fff;
+    border-radius: 18px;
+}
+
+
+.orders-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.orders-toolbar input,
+.orders-toolbar select {
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    min-width: 220px;
+}
+
+.order-card {
+    min-height: 190px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
+    border-left: 6px solid #ddd;
+}
+
+.orders-pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+}
+
+.orders-pagination button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #f4c542;
+}
+
+@media (max-width:1600px) {
+    .orders-board {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+@media (max-width:1300px) {
+    .orders-board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width:980px) {
+    .orders-board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

@@ -12,18 +12,12 @@ app.use("/view", express.static(path.join(__dirname, "view")));
 // use public all
 app.use("/admin/public", express.static(path.join(__dirname, "admin/public")));
 app.use("/cook/public", express.static(path.join(__dirname, "cook/public")));
-app.use(
-  "/customer/public",
-  express.static(path.join(__dirname, "customer/public")),
-);
+app.use("/customer/public", express.static(path.join(__dirname, "customer/public")));
 
 // use view all
 app.use("/admin/view", express.static(path.join(__dirname, "admin/view")));
 app.use("/cook/view", express.static(path.join(__dirname, "cook/view")));
-app.use(
-  "/customer/view",
-  express.static(path.join(__dirname, "customer/view")),
-);
+app.use("/customer/view", express.static(path.join(__dirname, "customer/view")));
 
 // get login all
 app.get("/", function (req, res) {
@@ -308,40 +302,60 @@ app.delete("/admin/menu/:id", function (req, res) {
 });
 
 // admin orders list
-app.get("/admin/orders", function (req, res) {
-  const sql =
-    `
-        SELECT 
-            o.order_id,
-            c.table_number,
-            GROUP_CONCAT(CONCAT(m.name, ' x', oi.quantity) SEPARATOR ', ') AS items,
-            o.created_at,
-            SUM(m.price * oi.quantity) AS total,
-            MAX(oi.status) AS status
-        FROM ` +
-    "`order`" +
-    ` o
-        JOIN order_item oi ON o.order_id = oi.order_id
-        JOIN menu m ON oi.menu_id = m.menu_id
-        JOIN customer c ON o.customer_id = c.customer_id
-        GROUP BY o.order_id
-        ORDER BY o.created_at DESC
+app.get('/admin/orders', (req, res) => {
+    const sql = `
+      SELECT
+          o.order_id,
+
+          GROUP_CONCAT(
+              CONCAT(m.name, ' x', oi.quantity)
+              SEPARATOR ', '
+          ) AS items,
+
+          o.created_at,
+
+          SUM(m.price * oi.quantity) AS total,
+
+          CASE
+              WHEN SUM(oi.status = 'pending') > 0 THEN 'pending'
+              WHEN SUM(oi.status = 'cooking') > 0 THEN 'cooking'
+              ELSE 'done'
+          END AS status,
+
+          GROUP_CONCAT(
+              DISTINCT IFNULL(c.username, '-')
+              SEPARATOR ', '
+          ) AS cook_name
+
+      FROM \`order\` o
+      JOIN order_item oi ON o.order_id = oi.order_id
+      JOIN menu m ON oi.menu_id = m.menu_id
+      LEFT JOIN cooks c ON oi.updated_by = c.cook_id
+
+      GROUP BY o.order_id
+      ORDER BY o.created_at DESC
     `;
 
-  con.query(sql, function (err, results) {
-    if (err) return res.status(500).json({ message: "Unable to fetch orders" });
-    res.json(results);
-  });
+    con.query(sql, (err, rows) => {
+        if (err) {
+            console.error('Orders SQL Error:', err);
+            return res.status(500).json({
+                message: 'Database error'
+            });
+        }
+
+        res.json(rows);
+    });
 });
 
 // admin payments list
 app.get("/admin/payments", function (req, res) {
   const sql = `
-        SELECT p.payment_id, p.customer_id, c.table_number, p.total_price, p.paid_at
-        FROM payment p
-        LEFT JOIN customer c ON p.customer_id = c.customer_id
-        ORDER BY p.paid_at DESC
-    `;
+    SELECT p.payment_id, p.customer_id, c.table_number, p.total_price, p.paid_at
+    FROM payment p
+    LEFT JOIN customer c ON p.customer_id = c.customer_id
+    ORDER BY p.paid_at DESC
+  `;
 
   con.query(sql, function (err, results) {
     if (err)
@@ -606,25 +620,25 @@ app.patch("/cook/order-item/:id", function (req, res) {
             if (aErr) {
               console.error("Failed to add updated_at column", aErr);
               // still attempt update without timestamp
-                const expectedOld = status === 'cooking' ? 'pending' : (status === 'serving' ? 'cooking' : null);
-                if (!expectedOld) {
-                  return res.status(400).json({ message: 'Invalid status transition' });
-                }
-                const sqlNoTs = `UPDATE order_item SET status = ?, updated_by = ? WHERE order_item_id = ? AND status = ?`;
-                return con.query(
-                  sqlNoTs,
-                  [status, cookId, req.params.id, expectedOld],
-                  function (err2, result2) {
-                    if (err2) {
-                      console.error(err2);
-                      return res.status(500).json({ message: "Update failed" });
-                    }
-                    if (!result2 || result2.affectedRows === 0) {
-                      return res.status(409).json({ message: "Order item already claimed or status changed" });
-                    }
-                    res.status(200).json({ message: "Updated (no timestamp)" });
-                  },
-                );
+              const expectedOld = status === 'cooking' ? 'pending' : (status === 'serving' ? 'cooking' : null);
+              if (!expectedOld) {
+                return res.status(400).json({ message: 'Invalid status transition' });
+              }
+              const sqlNoTs = `UPDATE order_item SET status = ?, updated_by = ? WHERE order_item_id = ? AND status = ?`;
+              return con.query(
+                sqlNoTs,
+                [status, cookId, req.params.id, expectedOld],
+                function (err2, result2) {
+                  if (err2) {
+                    console.error(err2);
+                    return res.status(500).json({ message: "Update failed" });
+                  }
+                  if (!result2 || result2.affectedRows === 0) {
+                    return res.status(409).json({ message: "Order item already claimed or status changed" });
+                  }
+                  res.status(200).json({ message: "Updated (no timestamp)" });
+                },
+              );
             }
             doUpdate();
           },
@@ -770,65 +784,34 @@ app.post("/customer/login", function (req, res) {
     return res.status(400).json({ message: "Invalid table number" });
   }
 
-  const findSql =
-    "SELECT customer_id, status FROM customer WHERE table_number = ? ORDER BY created_at DESC LIMIT 1";
-  con.query(findSql, [tNum], function (err, results) {
-    if (err) {
-      console.error("customer/login select error", err);
-      return res
-        .status(500)
-        .json({
-          message: "Server error",
-          error: err.sqlMessage || err.message,
-        });
-    }
+  // 1. ตรวจสอบก่อนว่าโต๊ะนี้มีลูกค้าที่สถานะ 'active' อยู่หรือไม่
+  const checkSql = "SELECT customer_id FROM customer WHERE table_number = ? AND status = 'active' LIMIT 1";
+
+  con.query(checkSql, [tNum], function (err, results) {
+    if (err) return res.status(500).json({ message: "Database error", error: err.message });
 
     if (results.length > 0) {
-      const customer = results[0];
-
-      if (customer.status === "active") {
-        return res
-          .status(403)
-          .json({ message: "This table is currently occupied!" });
-      }
-
-      if (customer.status === "paid" || customer.status === "inactive") {
-        const updateSql =
-          "UPDATE customer SET status='active', created_at=NOW() WHERE customer_id = ?";
-        return con.query(updateSql, [customer.customer_id], function (err2) {
-          if (err2) {
-            console.error("customer/login update error", err2);
-            return res
-              .status(500)
-              .json({
-                message: "Server error",
-                error: err2.sqlMessage || err2.message,
-              });
-          }
-          return res
-            .status(200)
-            .json({ customerId: customer.customer_id, tableNumber: tNum });
-        });
-      }
-
-      return res
-        .status(200)
-        .json({ customerId: customer.customer_id, tableNumber: tNum });
+      // ถ้าโต๊ะไม่ว่าง ให้ส่ง error กลับไป
+      return res.status(403).json({ message: "This table is currently occupied!" });
     }
 
-    const insertSql =
-      "INSERT INTO customer (table_number, created_at, status) VALUES (?, NOW(), 'active')";
-    con.query(insertSql, [tNum], function (err2, result) {
-      if (err2) {
-        console.error("customer/login insert error", err2);
-        return res
-          .status(500)
-          .json({
-            message: "Server error",
-            error: err2.sqlMessage || err2.message,
-          });
+    // 2. ถ้าโต๊ะว่าง ให้สร้างแถวใหม่ (customer_id จะเพิ่มเองอัตโนมัติ)
+    const insertSql = "INSERT INTO customer (table_number, status, created_at) VALUES (?, 'active', NOW())";
+
+    con.query(insertSql, [tNum], function (err, result) {
+      if (err) {
+        console.error("Insert customer error", err);
+        return res.status(500).json({ message: "Failed to create customer session" });
       }
-      res.status(200).json({ customerId: result.insertId, tableNumber: tNum });
+
+      // result.insertId คือ ID ล่าสุดที่ Database เจนให้
+      const newCustomerId = result.insertId;
+
+      res.status(200).json({
+        message: "Login successful",
+        tableNumber: tNum,
+        customerId: newCustomerId
+      });
     });
   });
 });
@@ -1015,14 +998,15 @@ app.get("/customer/payment-history/:customerId", function (req, res) {
 // history review customer
 app.get("/customer/review-history/:customerId", function (req, res) {
   const customerId = req.params.customerId;
-  const sql =
-    "SELECT comment, created_at FROM review WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
+  // Add `r.rating` to your SQL query.
+  const sql = "SELECT comment, rating, created_at FROM review WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1";
 
   con.query(sql, [customerId], function (err, results) {
     if (err) return res.status(500).send("Database error");
     res.status(200).json(results[0] || {});
   });
 });
+
 // leave customer
 app.post("/customer/logout/:customerId", function (req, res) {
   const customerId = req.params.customerId;
@@ -1036,6 +1020,7 @@ app.post("/customer/logout/:customerId", function (req, res) {
     res.status(200).json({ message: "Session closed" });
   });
 });
+
 // ------------------------------------ end customer routes ------------------------------------
 
 app.listen(3000, function () {

@@ -9,13 +9,23 @@
     <title>Home Page</title>
 </head>
 
-<body class="min-h-screen">
-    <main class="flex justify-center items-center h-screen bg-gray-100">
-        <div class="space-y-4">
-            <h1 class="text-3xl font-bold text-center">Home Page</h1>
-            <a href="/admin" class="font-bold text-md btn btn-warning w-full">Admin</a>
-            <a href="/cook" class="font-bold text-md btn btn-warning w-full">Cook</a>
-            <a href="/customer" class="font-bold text-md btn btn-warning w-full">Customer</a>
+<body class="min-h-screen bg-base-200">
+    <main class="flex flex-col justify-center items-center h-screen px-4">
+        <div class="max-w-md w-full text-center space-y-8">
+            <div class="space-y-2">
+                <h1 class="text-5xl font-black text-warning">KITCHEN STATION</h1>
+                <p class="text-gray-500">Deliciousness delivered to your table</p>
+            </div>
+
+            <div class="card bg-white shadow-xl p-6 border-t-4 border-warning">
+                <h2 class="text-xl font-bold mb-4">Are you hungry?</h2>
+                <a href="/customer" class="btn btn-warning btn-lg w-full text-lg">Order Now</a>
+            </div>
+
+            <div class="flex gap-4">
+                <a href="/admin" class="btn btn-outline btn-sm flex-1">Admin Portal</a>
+                <a href="/cook" class="btn btn-outline btn-sm flex-1">Kitchen Display</a>
+            </div>
         </div>
     </main>
 </body>

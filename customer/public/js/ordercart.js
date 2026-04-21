@@ -8,9 +8,9 @@ function renderCart() {
     const list = document.getElementById('cart-list');
     const orderBtn = document.getElementById('order-btn');
     const totalPriceDisplay = document.getElementById('cart-total-price'); // เพิ่มตัวแปรนี้
-    
-    if (!list) return; 
-    
+
+    if (!list) return;
+
     if (cart.length === 0) {
         list.innerHTML = `<div class="text-center py-20 opacity-30 italic">Tray is empty</div>`;
         if (orderBtn) orderBtn.disabled = true;
@@ -35,10 +35,10 @@ function renderCart() {
 `).join('');
 
     const total = cart.reduce((sum, item) => sum + item.price, 0);
-const displayTotal = document.getElementById('display-total');
-if (displayTotal) {
-    displayTotal.innerHTML = `${total}<span class="text-amber-400 ml-1">฿</span>`;
-}
+    const displayTotal = document.getElementById('display-total');
+    if (displayTotal) {
+        displayTotal.innerHTML = `${total}<span class="text-amber-400 ml-1">฿</span>`;
+    }
 }
 
 function removeItem(index) {
@@ -61,7 +61,7 @@ if (document.getElementById('order-btn')) {
         }
 
         const customerId = sessionStorage.getItem('customerId');
-        
+
         if (!customerId) {
             Swal.fire({
                 title: 'Not Logged In',
@@ -99,7 +99,7 @@ if (document.getElementById('order-btn')) {
                     let orderHistory = JSON.parse(sessionStorage.getItem('allOrderIds')) || [];
                     orderHistory.push(data.orderId);
                     sessionStorage.setItem('allOrderIds', JSON.stringify(orderHistory));
-                    sessionStorage.removeItem('kitchen_cart'); 
+                    sessionStorage.removeItem('kitchen_cart');
                     location.href = 'status.html';
                 } else {
                     Swal.fire({

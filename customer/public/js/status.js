@@ -1,15 +1,15 @@
 async function checkAllOrdersStatus() {
     const tableNo = sessionStorage.getItem('tableNumber') || '--';
     const orderIds = JSON.parse(sessionStorage.getItem('allOrderIds')) || [];
-    
-    if (document.getElementById('table-number')) 
+
+    if (document.getElementById('table-number'))
         document.getElementById('table-number').innerText = `#${tableNo}`;
-    
-    if (document.getElementById('order-id')) 
+
+    if (document.getElementById('order-id'))
         document.getElementById('order-id').innerText = orderIds.length > 0 ? orderIds.join(', ') : 'No Active Order';
 
     const container = document.getElementById('dish-status-container');
-    
+
     if (orderIds.length === 0) {
         container.innerHTML = `<p class="text-center text-slate-300 py-10 italic">No active orders</p>`;
         return;

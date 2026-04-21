@@ -8,50 +8,84 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* เพิ่มความลื่นไหลในการแสดงผล */
+        .star-btn {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .star-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .textarea-custom:focus {
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.1);
+        }
+    </style>
 </head>
 
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 text-center">
-    
-    <div class="card bg-white p-8 shadow-sm border border-slate-200 max-w-md w-full rounded-3xl overflow-hidden">
-        <div class="flex items-center justify-between mb-6 gap-4">
-            <button onclick="goBack()" class="btn btn-ghost btn-sm text-slate-500 hover:text-slate-900">
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
+
+    <div
+        class="card bg-white p-8 md:p-10 shadow-2xl shadow-slate-200 border border-slate-100 max-w-md w-full rounded-[2.5rem] overflow-hidden">
+
+        <div class="flex items-center justify-between mb-8">
+            <button onclick="goBack()" class="btn btn-ghost btn-sm text-slate-400 hover:text-slate-900 px-0">
                 ← Back
             </button>
-            <span class="bg-amber-100 text-amber-600 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">
+            <span
+                class="bg-amber-100 text-amber-600 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">
                 Feedback
             </span>
         </div>
 
-        <h2 class="text-3xl font-black text-slate-800 mb-2 tracking-tight">How was your meal?</h2>
-        <p class="text-sm text-slate-400 mb-6 font-medium">Please let us know your feedback before you leave.</p>
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-black text-slate-800 mb-2 tracking-tight">How was your meal?</h2>
+            <p class="text-sm text-slate-400 font-medium">Please let us know your feedback before you leave.</p>
+        </div>
 
-        <div class="form-control mb-6 text-left">
-            <label class="label">
-                <span class="label-text text-slate-400 uppercase text-[10px] font-black tracking-[0.2em]">Write a comment</span>
-            </label>
-            <textarea id="comment"
-                class="textarea bg-slate-50 border-slate-200 focus:border-amber-400 focus:outline-none h-32 placeholder:text-slate-300 text-slate-700 rounded-2xl p-4 transition-all"
+        <div class="form-control mb-8 w-full max-w-[92%] mx-auto">
+            <div class="flex justify-between items-end mb-2 px-1">
+                <label class="label p-0">
+                    <span class="label-text text-slate-400 uppercase text-[10px] font-black tracking-widest">Write a
+                        comment</span>
+                </label>
+                <span id="char-count" class="text-[10px] text-slate-300 font-bold uppercase tracking-widest">0 /
+                    200</span>
+            </div>
+            <textarea id="comment" maxlength="200"
+                class="textarea textarea-custom bg-slate-50 border-slate-200 focus:border-amber-400 focus:outline-none h-36 placeholder:text-slate-300 text-slate-700 rounded-2xl p-5 transition-all resize-none w-full shadow-inner"
                 placeholder="Tell the chef what you liked..."></textarea>
         </div>
 
-        <div class="mb-6 text-left">
-            <label class="label">
-                <span class="label-text text-slate-400 uppercase text-[10px] font-black tracking-[0.2em]">Rate your experience</span>
+        <div class="mb-10 text-center">
+            <label class="label justify-center mb-4 p-0">
+                <span class="label-text text-slate-400 uppercase text-[10px] font-black tracking-widest">Rate your
+                    experience</span>
             </label>
-            <div id="star-row" class="flex justify-center gap-2 text-2xl text-yellow-400 cursor-pointer">
-                <span data-value="1">☆</span>
-                <span data-value="2">☆</span>
-                <span data-value="3">☆</span>
-                <span data-value="4">☆</span>
-                <span data-value="5">☆</span>
+
+            <div id="star-row" class="flex justify-center gap-3 mb-4">
+                <button data-value="1" class="star-btn text-4xl focus:outline-none text-slate-200">★</button>
+                <button data-value="2" class="star-btn text-4xl focus:outline-none text-slate-200">★</button>
+                <button data-value="3" class="star-btn text-4xl focus:outline-none text-slate-200">★</button>
+                <button data-value="4" class="star-btn text-4xl focus:outline-none text-slate-200">★</button>
+                <button data-value="5" class="star-btn text-4xl focus:outline-none text-slate-200">★</button>
             </div>
-            <p id="rating-label" class="text-xs text-gray-400 mt-2">Select a star rating.</p>
-            <button onclick="submitReview()" class="btn btn-lg bg-amber-400 hover:bg-amber-500 border-none text-black font-black w-full rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95">
-                Submit & Finish
-            </button>
+
+            <div class="h-6">
+                <p id="rating-label" class="text-sm font-bold text-slate-400 transition-all duration-300">Select a star
+                    rating</p>
+            </div>
         </div>
 
-        <p class="mt-8 text-[10px] text-slate-300 uppercase font-bold tracking-widest">
+        <button id="submit-btn" onclick="submitReview()"
+            class="btn btn-lg bg-amber-400 hover:bg-amber-500 border-none text-black font-black w-full rounded-2xl shadow-xl shadow-amber-100 transition-all active:scale-95 flex items-center justify-center gap-2 py-4 h-auto">
+            <span id="btn-text">Submit & Finish</span>
+            <span id="btn-loader" class="loading loading-spinner hidden"></span>
+        </button>
+
+        <p class="mt-10 text-[10px] text-slate-300 uppercase font-bold tracking-[0.3em] text-center">
             Hope to see you again soon!
         </p>
     </div>

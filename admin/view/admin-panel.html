@@ -153,32 +153,38 @@
             <!-- ORDERS -->
             <div class="page" id="page-orders">
                 <div class="page-header">
-                    <h1>Orders</h1>
-                    <p>All orders sorted by time</p>
+                    <h1>Kitchen Orders</h1>
+                    <p>Live kitchen display</p>
                 </div>
-                <div class="table-card">
-                    <div class="table-toolbar">
-                        <h3>All orders</h3>
-                        <select onchange="filterOrders(this.value)" style="margin-left:auto;">
-                            <option value="all">All statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="cooking">Cooking</option>
-                            <option value="done">Done</option>
-                        </select>
+
+                <div class="orders-toolbar">
+
+                    <input type="text" id="order-search" placeholder="Search order / item / cook..."
+                        oninput="applyOrderFilters()">
+
+                    <input type="date" id="order-date" onchange="applyOrderFilters()">
+
+                    <select id="order-status-filter" onchange="applyOrderFilters()">
+                        <option value="all">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="cooking">Cooking</option>
+                        <option value="done">Done</option>
+                    </select>
+
+                    <div class="kitchen-stats">
+                        Pending: <span id="pending-count">0</span>
+                        Cooking: <span id="cooking-count">0</span>
+                        Done: <span id="done-count">0</span>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order #</th>
-                                <th>Items</th>
-                                <th>Cook</th>
-                                <th>Time</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-tbody"></tbody>
-                    </table>
+
+                </div>
+
+                <div id="orders-board" class="orders-board"></div>
+
+                <div class="orders-pagination">
+                    <button onclick="changePage(-1)">‹ Prev</button>
+                    <span id="page-info">1 / 1</span>
+                    <button onclick="changePage(1)">Next ›</button>
                 </div>
             </div>
 
@@ -249,8 +255,8 @@
     <div class="modal-overlay" id="modal-cook">
         <div class="modal">
             <h3>Add cook</h3>
-            <div class="field"><label>Cook name</label><input type="text" id="new-cook-name"
-                    placeholder="e.g. C001"></div>
+            <div class="field"><label>Cook name</label><input type="text" id="new-cook-name" placeholder="e.g. C001">
+            </div>
             <div class="field"><label>Cook ID</label><input type="text" id="new-cook-id" placeholder="e.g. 201">
             </div>
             <div class="modal-actions">

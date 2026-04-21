@@ -6,7 +6,7 @@ async function doLogin() {
     const tableNumberInput = document.getElementById('tableNumber').value.trim();
     const errBanner = document.getElementById('loginErr');
     errBanner.classList.add('hidden');
-    
+
     const tableNum = parseInt(tableNumberInput);
     if (!tableNumberInput || isNaN(tableNum) || tableNum < 1 || tableNum > 8) {
         errBanner.textContent = "Please enter a valid table number (1-8)";
@@ -18,7 +18,7 @@ async function doLogin() {
         const res = await fetch('/customer/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tableNumber: tableNum }) 
+            body: JSON.stringify({ tableNumber: tableNum })
         });
 
         if (res.ok) {
